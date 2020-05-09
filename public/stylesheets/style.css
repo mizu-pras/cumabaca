@@ -1,0 +1,49 @@
+* {
+	margin: 0;
+	box-sizing: border-box;
+}
+body {
+	overflow-x: hidden;
+}
+
+header, content, .container-button {
+	padding: .3em 16px;
+}
+
+header {
+	padding-top: 24px;
+	padding-bottom: 24px;
+}
+
+#title-komik, .reader-container {
+	text-align: center;
+}
+
+.reader-container img {
+	max-width: 100%;
+	height: auto;
+}
+
+.container-button {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.container-button:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+
+.container-button .prev {
+	float: left;
+}
+.container-button .next {
+	float: right;
+}
+
+select, .container-button .next, .container-button .prev {
+	padding: 8px 16px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+}

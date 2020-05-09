@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Download Manga From mangakomi.com/</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="stylesheets/style.css">
+</head>
+<body>
+	
+	<header>
+		<h1>Download Manga From mangakomi.com</h1>
+	</header>
+
+	<content>
+			<select id="url">
+				<option value="https://mangakomi.com/manga/versatile-mage">Versatile Mage</option>
+			</select>
+		
+			<select id="chapter"></select>
+	</content>
+		
+	<div class="container-button">
+		<button class="prev">Kembali</button>
+		<button class="next">Lanjut</button>
+	</div>
+
+	<h2 id="title-komik"></h2>
+	<div class="reader-container"></div>
+
+	<div class="container-button">
+		<button class="prev">Kembali</button>
+		<button class="next">Lanjut</button>
+	</div>
+
+	<script>
+		// const API = 'http://localhost:3000/get/per-chapter';
+		const API = 'http://192.168.1.17:3000/get/per-chapter';
+		if (!localStorage.lastChap) {
+			localStorage.setItem('lastChap', 1)
+		}
+
+		var lastChap = localStorage.getItem('lastChap');
+		
+		$(document).ready(function(){
+			let listChapter = optionChapter(1, 405);
+			$('#chapter').html(listChapter);
+
+			getApi();
+			$('#chapter').on('change', function() {
+				getApi();
+
+				localStorage.lastChap = Number($('#chapter').val());
+			});
+
+			$(".next").click(function(){
+				let currentChap = Number($('#chapter').val());
+
+				$('#chapter').val(currentChap+1);
+			
+				getApi();
+			});
+			$(".prev").click(function(){
+				let currentChap = Number($('#chapter').val());
+
+				$('#chapter').val(currentChap-1);
+			
+				getApi();
+			});
+
+			function optionChapter(min, max) {
+				let data = '';
+				for (let i = max; i >= min; i--) {
+					if (lastChap == i) {
+						data += '<option selected value="'+ i +'">'+ i +'</option>';
+					}
+					else {
+						data += '<option value="'+ i +'">'+ i +'</option>';
+					}
+				}
+				return data;
+			}
+
+			function getApi() {
+				let url = $('#url').val();
+				let chapter = $('#chapter').val();
+
+				$.ajax({
+					url: API,
+					method: 'POST', 
+					data: {
+						url: url,
+						chapter: chapter
+					},
+					success: function(result){
+						if (result.success) {
+							const data = result.data;
+
+							$('#title-komik').html(data.title)
+
+							let listImg = ''
+							data.source.forEach((item, index) => {
+								listImg += '<img src="' + item.src + '">'
+							})
+
+							$('.reader-container').html(listImg);
+
+							// addDownloadBtn();
+						}
+					}
+				});
+			}
+
+			/* Callback for button's "click" event */
+			// function doit() {
+			//     console.log('download');
+			// }
+
+			/* Create and add a "download" button on the top, left corner */
+			// function addDownloadBtn() {
+			//     var btn = document.createElement("button");
+			//     btn.innerText = "Download all images";
+			//     btn.addEventListener("click", doit);
+			//     btn.style.position = "fixed";
+			//     btn.style.top = btn.style.left = "0px";
+			//     document.body.appendChild(btn);
+			// }
+		});
+	</script>
+
+</body>
+</html>
