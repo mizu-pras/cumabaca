@@ -1,5 +1,5 @@
 # cumabaca
 
-Scrape komik from `https://mangakomi.com`
+Scrape komik from [mangakomi](https://mangakomi.com)
 
 Note: current not working
