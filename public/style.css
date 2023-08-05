@@ -1,0 +1,15 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+header {
+    padding: .3em 16px;
+}
+
+.subtitle {
+    font-weight: normal;
+}
