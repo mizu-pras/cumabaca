@@ -77,6 +77,11 @@ class MainUI {
         inputurl.setAttribute('name', 'url');
         inputurl.setAttribute('placeholder', 'url komik');
 
+        const komik = MainApp.instance.komik;
+        if (komik) {
+            inputurl.setAttribute('value', komik);
+        }
+
         const submitButton = document.createElement('button');
         submitButton.setAttribute('type', 'submit');
         submitButton.textContent = 'Submit';

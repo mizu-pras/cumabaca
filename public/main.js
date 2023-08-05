@@ -50,6 +50,9 @@ class MainApp {
     komik = ''
     activeChapter = ''
 
+    isFetchChapterRunning = false
+    isFetchDataRunning = false
+
     static _instance;
 
     static get instance() {
@@ -73,6 +76,7 @@ class MainApp {
         MainUI.instance.init()
 
         // add event listener
+        document.addEventListener('scroll', this.handleScroll)
     }
 
     resetKomik() {
@@ -145,6 +149,12 @@ class MainApp {
      * @param {Function | undefined} cb 
      */
     async getChapterList(cb = undefined) {
+        if (this.isFetchChapterRunning) {
+            return;
+        }
+
+        this.isFetchChapterRunning = true;
+
         try {
             const params = new URLSearchParams({
                 url: this.komik
@@ -183,6 +193,7 @@ class MainApp {
                 this.getKomikData(true, MainUI.instance.fetchKomikDataCallback.bind(MainUI.instance));
             }
 
+            this.isFetchChapterRunning = false;
             if (cb) {
                 cb();
             }
@@ -194,6 +205,7 @@ class MainApp {
 
             console.log(error);
 
+            this.isFetchChapterRunning = false;
             if (cb) {
                 cb();
             }
@@ -205,6 +217,12 @@ class MainApp {
      * @param {Function | undefined} cb 
      */
     async getKomikData(clear = false, cb = undefined) {
+        if (this.isFetchDataRunning) {
+            return
+        }
+
+        this.isFetchDataRunning = true;
+
         if (clear) {
             MainUI.instance.render.innerHTML = '';
         }
@@ -247,6 +265,8 @@ class MainApp {
             this.komikData = data.data;
             this.chapterTitle = data.title;
 
+            this.isFetchDataRunning = false;
+
             if (cb) {
                 cb(clear);
             }
@@ -256,6 +276,22 @@ class MainApp {
 
             MainUI.instance.komikStatusRemove(idLoading);
             MainUI.instance.komikStatusBuilder('', error.message, true);
+
+            this.isFetchDataRunning = false;
+        }
+    }
+
+    handleScroll() {
+        let documentHeight = document.body.scrollHeight;
+        let currentScroll = window.scrollY + window.innerHeight;
+        // When the user is [modifier]px from the bottom, fire the event.
+        let modifier = 4000;
+        if (currentScroll + modifier > documentHeight) {
+            if (MainApp.instance.isFetchDataRunning) {
+                return
+            }
+
+            MainApp.instance.nextChapter(false)
         }
     }
 }
