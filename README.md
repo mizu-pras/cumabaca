@@ -1,25 +1,27 @@
 # Cuma Baca
 
-Scrape komik from [komiku.id](https://komiku.id). Dengan tampilan yang sangat minimalis, sehingga cocok dengan namanya *cuma baca*, cuma fokus untuk membaca saja, tanpa terdistract hal-hal lain.
+A minimalist comic scraper from [komiku.id](https://komiku.id), *Just Read* focuses on delivering a clean, distraction-free reading experience.
 
 ## Demo
 
-url: [cuma baca demo](https://cuma-baca-6bec00abe157.herokuapp.com)
+Visit the [Just Read Demo](https://cuma-baca-6bec00abe157.herokuapp.com) to try it out.
 
-### How To
+### Instructions
 
-Cara membaca komik di *cuma baca*.
-1. Cari komik yang ingin di baca di [komiku.id](https://komiku.id).
-2. Copy url komiknya, lalu paste ke [cuma baca demo](https://cuma-baca-6bec00abe157.herokuapp.com).contoh url komik:  `https://komiku.id/manga/versatile-mage/`
-3. Enjoy, selamat mambaca komik tanpa gangguan.
+Follow these steps to enjoy comics on *Just Read*:
+1. Visit [komiku.id](https://komiku.id) and find a comic you want to read.
+2. Copy the comic's URL and paste it into the [Just Read Demo](https://cuma-baca-6bec00abe157.herokuapp.com). For example, a valid comic URL would look like: `https://komiku.id/manga/versatile-mage/`
+3. Enjoy an uninterrupted reading experience.
 
-### Screen Shot
+### Screenshots
+
+The platform is designed for a variety of devices.
 
 #### Mobile
-![Alt text](/screenshot/mobile.PNG "Optional title")
+![Mobile view](/screenshot/mobile.PNG "Mobile View")
 
 #### Tablet
-![Alt text](/screenshot/tablet.jpg "Optional title")
+![Tablet view](/screenshot/tablet.jpg "Tablet View")
 
 #### Desktop
-![Alt text](/screenshot/desktop.png "Optional title")
+![Desktop view](/screenshot/desktop.png "Desktop View")
