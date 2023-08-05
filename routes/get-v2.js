@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const beautify_html = require('js-beautify').html;
 const cheerio = require('cheerio');
-// const jsdom = require("jsdom");
-// const { JSDOM } = jsdom;
 
 function extractBodyContent(html) {
     let match = html.match(/(<body[^>]*>[\s\S]*?<\/body>)/i);
@@ -17,7 +14,7 @@ router.post('/per-chapter', async (req, res, next) => {
     let prefix = req.body.prefix
 
     if (!prefix || !title || !chapter) {
-        return next(new Error('BROKE'));
+        return next(new Error('params invalid'));
     }
 
     const lastPrefix = prefix[prefix.length - 1]
@@ -42,21 +39,7 @@ router.post('/per-chapter', async (req, res, next) => {
 
         const result = response.data.replace(/[\t\r\n]/g, '').trim()
 
-        // console.log(result);
-
         let $ = cheerio.load(result);
-
-        // console.log($('#Judul h1')[0]);
-
-        // const bodyString = extractBodyContent(result);
-
-        // console.log(bodyString);
-
-        // const dom = new JSDOM(bodyString);
-        // // const html = parser.parseFromString(result)
-        // const body = dom.window.document.body
-
-        // console.log(body)
 
         const title = $('#Judul h1').first().text();
         const mainSection = $('#Baca_Komik').first()

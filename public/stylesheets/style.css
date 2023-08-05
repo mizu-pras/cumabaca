@@ -61,7 +61,25 @@ select,
 	gap: 10px;
 }
 
+.info-container {
+	margin-top: 4px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
 .prefix-container {
 	display: flex;
 	align-items: center;
+}
+
+.error-container {
+	/* display: flex; */
+	display: none;
+	align-items: center;
+	justify-content: center;
+}
+
+#error {
+	color: red;
 }

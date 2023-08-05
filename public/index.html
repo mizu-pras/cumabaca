@@ -11,19 +11,23 @@
 <body>
 
 	<header>
-		<h1>From <a href="https://komiku.id" target="_blank">komiku</a></h1>
+		<h1>Cuma Baca</h1>
+		<p>Tempat sederhana untuk membaca komik dari <a href="https://komiku.id" target="_blank">komiku</a></p>
 	</header>
 
 	<content class="input-container">
+		<input type="hidden" value="424" id="totalChapter">
+
 		<div class="prefix-container">
 			<label for="url">Prefix URL:</label>
 			<input type="text" id="url" value="https://komiku.id/ch/">
 		</div>
 
 		<div class="info-container">
-			<select id="title">
+			<!-- <select id="title">
 				<option value="versatile-mage">Versatile Mage</option>
-			</select>
+			</select> -->
+			<input type="text" id="title" value="versatile-mage">
 
 			<select id="chapter"></select>
 		</div>
@@ -32,6 +36,10 @@
 	<div class="container-button">
 		<button class="prev">Kembali</button>
 		<button class="next">Lanjut</button>
+	</div>
+
+	<div class="error-container">
+		<p id="error"></p>
 	</div>
 
 	<h2 id="title-komik"></h2>
@@ -54,7 +62,11 @@
 		var lastChap = localStorage.getItem('lastChap');
 
 		$(document).ready(function () {
-			let listChapter = optionChapter(1, 424);
+			let maxChapter = 424;
+			const title = []
+
+			let listChapter = optionChapter(1, maxChapter);
+
 			$('#chapter').html(listChapter);
 
 			getApi();
@@ -67,12 +79,20 @@
 			$(".next").click(function () {
 				let currentChap = Number($('#chapter').val());
 
+				if (currentChap + 1 > maxChapter) {
+					return
+				}
+
 				$('#chapter').val(currentChap + 1);
 
 				getApi();
 			});
 			$(".prev").click(function () {
 				let currentChap = Number($('#chapter').val());
+
+				if (currentChap - 1 <= 0) {
+					return
+				}
 
 				$('#chapter').val(currentChap - 1);
 
@@ -119,7 +139,15 @@
 							$('.reader-container').html(listImg);
 
 							// addDownloadBtn();
+
+							$('.error-container').css({ display: 'none' })
+							$('#error').html('')
 						}
+					},
+					error: function (err) {
+						const message = err.responseJSON.error ? err.responseJSON.error : err.statusText
+						$('.error-container').css({ display: 'flex' })
+						$('#error').html(message)
 					}
 				});
 			}
