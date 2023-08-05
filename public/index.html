@@ -2,26 +2,33 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>From mangakomi.com/</title>
+	<title>Cuma Baca</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="stylesheets/style.css">
 </head>
 <body>
-	
+
 	<header>
-		<h1>From mangakomi.com</h1>
+		<h1>From <a href="https://komiku.id" target="_blank">komiku</a></h1>
 	</header>
 
-	<content>
-			<select id="url">
-				<option value="https://mangakomi.io/manga/versatile-mage">Versatile Mage</option>
+	<content class="input-container">
+		<div class="prefix-container">
+			<label for="url">Prefix URL:</label>
+			<input type="text" id="url" value="https://komiku.id/ch/">
+		</div>
+
+		<div class="info-container">
+			<select id="title">
+				<option value="versatile-mage">Versatile Mage</option>
 			</select>
-		
+
 			<select id="chapter"></select>
+		</div>
 	</content>
-		
+
 	<div class="container-button">
 		<button class="prev">Kembali</button>
 		<button class="next">Lanjut</button>
@@ -38,37 +45,37 @@
 	<script>
 		// const API = 'http://localhost:3000/get/per-chapter';
 		// const API = 'http://192.168.1.17:3000/get/per-chapter';
-		const API = 'https://cumabaca.herokuapp.com/get/per-chapter';
+		const API = '/v2/get/per-chapter';
 
 		if (!localStorage.lastChap) {
 			localStorage.setItem('lastChap', 1)
 		}
 
 		var lastChap = localStorage.getItem('lastChap');
-		
-		$(document).ready(function(){
+
+		$(document).ready(function () {
 			let listChapter = optionChapter(1, 424);
 			$('#chapter').html(listChapter);
 
 			getApi();
-			$('#chapter').on('change', function() {
+			$('#chapter').on('change', function () {
 				getApi();
 
 				localStorage.lastChap = Number($('#chapter').val());
 			});
 
-			$(".next").click(function(){
+			$(".next").click(function () {
 				let currentChap = Number($('#chapter').val());
 
-				$('#chapter').val(currentChap+1);
-			
+				$('#chapter').val(currentChap + 1);
+
 				getApi();
 			});
-			$(".prev").click(function(){
+			$(".prev").click(function () {
 				let currentChap = Number($('#chapter').val());
 
-				$('#chapter').val(currentChap-1);
-			
+				$('#chapter').val(currentChap - 1);
+
 				getApi();
 			});
 
@@ -76,10 +83,10 @@
 				let data = '';
 				for (let i = max; i >= min; i--) {
 					if (lastChap == i) {
-						data += '<option selected value="'+ i +'">'+ i +'</option>';
+						data += '<option selected value="' + i + '">' + i + '</option>';
 					}
 					else {
-						data += '<option value="'+ i +'">'+ i +'</option>';
+						data += '<option value="' + i + '">' + i + '</option>';
 					}
 				}
 				return data;
@@ -87,16 +94,18 @@
 
 			function getApi() {
 				let url = $('#url').val();
+				let title = $('#title').val();
 				let chapter = $('#chapter').val();
 
 				$.ajax({
 					url: API,
-					method: 'POST', 
+					method: 'POST',
 					data: {
-						url: url,
+						prefix: url,
+						title: title,
 						chapter: chapter
 					},
-					success: function(result){
+					success: function (result) {
 						if (result.success) {
 							const data = result.data;
 

@@ -8,10 +8,10 @@ const cheerio = require('cheerio');
 router.post('/per-chapter', async (req, res, next) => {
 	// TODO :
 	// 	get url from req.body
-	// const url = 'https://mangakomi.com/manga/versatile-mage';
+	// const url = 'https://mangakomi.io/manga/versatile-mage';
 	// const chapter = 283;
 
-	const {url, chapter} = req.body;
+	const { url, chapter } = req.body;
 
 	if (!url || !chapter) {
 		return res.json({
@@ -21,48 +21,48 @@ router.post('/per-chapter', async (req, res, next) => {
 	}
 
 	let URL = url + '/chapter-' + chapter;
-	
+
 	const options = {
-    	headers: {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36'}
-  	};
+		headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36' }
+	};
 
-  	try {
+	try {
 
-  		const response = await axios.get(URL, options);
-	    if (response.status != 200) {
-	      return res.send('err');
-	    }
+		const response = await axios.get(URL, options);
+		if (response.status != 200) {
+			return res.send('err');
+		}
 
-	    //const result = beautify_html(response.data).replace(/(\r\n|\n|\r|)/gm, "");
-    	let $ = cheerio.load(response.data);
+		//const result = beautify_html(response.data).replace(/(\r\n|\n|\r|)/gm, "");
+		let $ = cheerio.load(response.data);
 
-    	let data = {};
-    	data.title = $('h1').text();
-    	data.source = []
+		let data = {};
+		data.title = $('h1').text();
+		data.source = []
 
-    	$('.reading-content .page-break').each((index, element) => {
-    		data.source[index] = {}
-    		data.source[index]['src'] = $(element).find('.wp-manga-chapter-img').data('lazySrc');
-    	})
+		$('.reading-content .page-break').each((index, element) => {
+			data.source[index] = {}
+			data.source[index]['src'] = $(element).find('.wp-manga-chapter-img').data('lazySrc');
+		})
 
-	    return res.json({
-	    	success: true,
-	    	data: data
-	    })
+		return res.json({
+			success: true,
+			data: data
+		})
 
-  	} catch(err) {
-  		return res.json({
+	} catch (err) {
+		return res.json({
 			success: false,
 			message: "check url again"
 		});
-  	}
+	}
 });
 
-router.get('/show', function(req, res, next) {
-  res.json({
-  	success: true,
-  	data: []
-  })
+router.get('/show', function (req, res, next) {
+	res.json({
+		success: true,
+		data: []
+	})
 });
 
 module.exports = router;

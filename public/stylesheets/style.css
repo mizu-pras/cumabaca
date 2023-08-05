@@ -2,11 +2,14 @@
 	margin: 0;
 	box-sizing: border-box;
 }
+
 body {
 	overflow-x: hidden;
 }
 
-header, content, .container-button {
+header,
+content,
+.container-button {
 	padding: .3em 16px;
 }
 
@@ -15,7 +18,8 @@ header {
 	padding-bottom: 24px;
 }
 
-#title-komik, .reader-container {
+#title-komik,
+.reader-container {
 	text-align: center;
 }
 
@@ -38,12 +42,26 @@ header {
 .container-button .prev {
 	float: left;
 }
+
 .container-button .next {
 	float: right;
 }
 
-select, .container-button .next, .container-button .prev {
+select,
+.container-button .next,
+.container-button .prev {
 	padding: 8px 16px;
-    border: none;
-    border-bottom: 1px solid #ccc;
+	border: none;
+	border-bottom: 1px solid #ccc;
+}
+
+.input-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.prefix-container {
+	display: flex;
+	align-items: center;
 }
