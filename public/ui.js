@@ -272,7 +272,7 @@ class MainUI {
     }
 
     loadingLoadChapterListRemove() {
-        const loadings = document.querySelectorAll('loading-chapter-list');
+        const loadings = document.querySelectorAll('.loading-chapter-list');
         if (loadings.length > 0) {
             this.formKomik.removeChild(...loadings);
         }
