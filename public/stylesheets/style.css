@@ -56,7 +56,8 @@ header {
 
 select,
 .container-button .next,
-.container-button .prev {
+.container-button .prev,
+.submit {
 	padding: 8px 16px;
 	border: none;
 	border-bottom: 1px solid #ccc;
@@ -75,7 +76,8 @@ select,
 	gap: 16px;
 }
 
-.chapter-container {
+.chapter-container,
+.submit-container {
 	margin-top: 4px;
 }
 
