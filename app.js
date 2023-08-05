@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override')
@@ -7,9 +6,8 @@ const logger = require('morgan');
 const cors = require('cors')
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const getRouter = require('./routes/get');
 const getV2Router = require('./routes/get-v2');
+const komikRouter = require('./routes/komik');
 
 function errorHandler(err, req, res, next) {
     res.status(500)
@@ -28,10 +26,9 @@ app.use(methodOverride());
 app.use(express.static("public"))
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
-app.use('/get', getRouter);
 app.use('/v2/get', getV2Router);
+app.use('/komik', komikRouter)
 
 app.use(errorHandler);
 
