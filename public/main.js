@@ -45,6 +45,7 @@ class MainApp {
     }
 
     komikData = []
+    chapterTitle = ''
 
     komik = ''
     activeChapter = ''
@@ -80,6 +81,8 @@ class MainApp {
 
     changeKomik(url) {
         this.komikData = []
+        this.chapterTitle = ''
+
         this.komik = LocalConfig.setData('komik', url);
 
         this.getChapterList(() => {
@@ -87,11 +90,33 @@ class MainApp {
         });
     }
 
-    changeChapter(chapter, forceReplace = false) {
-        if (chapter === this.activeChapter) {
-            return
+    prevChapter() {
+        const curChapterIndex = this.chapters.ids.indexOf(this.activeChapter);
+        const prevChapterIndex = curChapterIndex + 1;
+
+        if (prevChapterIndex >= this.chapters.ids.length - 1) {
+            return;
         }
 
+        const prevChapter = this.chapters.ids[prevChapterIndex];
+        this.changeChapter(prevChapter, true);
+        MainUI.instance.updateSelectedChapter(prevChapter);
+    }
+
+    nextChapter(clear = true) {
+        const curChapterIndex = this.chapters.ids.indexOf(this.activeChapter);
+        const nextChapterIndex = curChapterIndex - 1;
+
+        if (nextChapterIndex < 0) {
+            return;
+        }
+
+        const nextChapter = this.chapters.ids[nextChapterIndex];
+        this.changeChapter(nextChapter, clear);
+        MainUI.instance.updateSelectedChapter(nextChapter);
+    }
+
+    changeChapter(chapter, clear = false) {
         if (!this.komik) {
             console.log('tidak ada komik yang dipilih');
             return
@@ -102,19 +127,12 @@ class MainApp {
             return
         }
 
-        const curChapIndex = this.getIndexChapter(this.activeChapter);
-        const targetChapIndex = this.getIndexChapter(chapter);
-        console.log({ curChapIndex, targetChapIndex });
-
-        const isNextChapter = curChapIndex - 1 === targetChapIndex
-
-        if (!isNextChapter || forceReplace) {
-            this.komikData = []
-        }
+        this.komikData = []
+        this.chapterTitle = ''
 
         this.activeChapter = LocalConfig.setData(`${this.komik}-chapter`, chapter);
 
-        this.getKomikData();
+        this.getKomikData(clear, MainUI.instance.fetchKomikDataCallback.bind(MainUI.instance));
     }
 
     getIndexChapter(chapter) {
@@ -162,7 +180,7 @@ class MainApp {
 
             if (this.chapters.ids.length > 0) {
                 this.activeChapter = LocalConfig.getData(`${this.komik}-chapter`, this.chapters.ids[this.chapters.ids.length - 1]);
-                this.getKomikData();
+                this.getKomikData(true, MainUI.instance.fetchKomikDataCallback.bind(MainUI.instance));
             }
 
             if (cb) {
@@ -182,8 +200,17 @@ class MainApp {
         }
     }
 
-    async getKomikData() {
-        MainUI.instance.komikStatusRemove();
+    /**
+     * 
+     * @param {Function | undefined} cb 
+     */
+    async getKomikData(clear = false, cb = undefined) {
+        if (clear) {
+            MainUI.instance.render.innerHTML = '';
+        }
+        else {
+            MainUI.instance.komikStatusRemove();
+        }
 
         const idLoading = 'loading'
         MainUI.instance.komikStatusBuilder(idLoading, 'Loading...');
@@ -217,9 +244,12 @@ class MainApp {
                 throw new Error('response data tida valid');
             }
 
-            this.komikData.push(data);
+            this.komikData = data.data;
+            this.chapterTitle = data.title;
 
-            MainUI.instance.komikStatusRemove();
+            if (cb) {
+                cb(clear);
+            }
 
         } catch (error) {
             console.log(error)

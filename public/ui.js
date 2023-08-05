@@ -37,6 +37,9 @@ class MainUI {
         this.chapterOptionBuilder();
 
         this.rootElement.append(this.render);
+
+        this.controllBuilder();
+        this.controllBuilder(true);
     }
 
     generateHeaderApp() {
@@ -102,7 +105,8 @@ class MainUI {
         this.chapterElement.setAttribute('name', 'chapter');
 
         chapterSelectConatiner.append(labelChapter, this.chapterElement);
-        chapterSelectConatiner.addEventListener('change', this.handleChapterChange)
+
+        this.chapterElement.addEventListener('change', this.handleChapterChange)
 
         this.rootElement.append(chapterSelectConatiner);
     }
@@ -134,12 +138,14 @@ class MainUI {
         }
     }
 
-    komikTitleBuilder(title) {
+    komikTitleBuilder() {
         /**
         <div class="komik-title">
             <h3>Judul Komik Yang Bagus</h3>
         </div>
          */
+        const title = MainApp.instance.chapterTitle;
+
         const komikTitle = document.createElement('div');
         komikTitle.setAttribute('class', 'komik-title');
 
@@ -191,7 +197,68 @@ class MainUI {
         const baca = document.createElement('div');
         baca.setAttribute('class', 'baca');
 
+        /** @type {string[]} */
+        const komikData = MainApp.instance.komikData
+
+        komikData.forEach(data => {
+            const img = new Image();
+            img.src = data;
+
+            baca.append(img);
+        })
+
         return baca;
+    }
+
+    fetchKomikDataCallback(clear) {
+        if (clear) {
+            this.render.innerHTML = '';
+        }
+        else {
+            this.komikStatusRemove();
+        }
+
+        const titleEl = this.komikTitleBuilder();
+        const bacaEl = this.komikBacaBuilder();
+
+        this.render.append(titleEl);
+        titleEl.after(bacaEl);
+    }
+
+    controllBuilder(isTop = false) {
+        const controllContainer = document.createElement('div');
+        controllContainer.setAttribute('class', 'controll-container');
+
+        const prevButton = document.createElement('button');
+        prevButton.setAttribute('type', 'button');
+        prevButton.textContent = 'Prev';
+
+        const nextButton = document.createElement('button');
+        nextButton.setAttribute('type', 'button');
+        nextButton.textContent = 'Next';
+
+        prevButton.addEventListener('click', function () {
+            MainApp.instance.prevChapter()
+        })
+
+        nextButton.addEventListener('click', function () {
+            MainApp.instance.nextChapter(isTop);
+        })
+
+        controllContainer.append(prevButton, nextButton);
+
+        if (isTop) {
+            this.render.before(controllContainer);
+        }
+        else {
+            this.render.after(controllContainer);
+        }
+    }
+
+    updateSelectedChapter(value) {
+        if (this.chapterElement) {
+            this.chapterElement.value = value
+        }
     }
 
     /**
