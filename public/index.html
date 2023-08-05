@@ -57,8 +57,10 @@
 		<p>Loading...</p>
 	</div>
 
-	<h2 id="title-komik"></h2>
-	<div class="reader-container"></div>
+	<div id="main">
+		<!-- <h2 class="title-komik"></h2>
+		<div class="reader-container"></div> -->
+	</div>
 
 	<div class="container-button">
 		<button class="prev">Kembali</button>
@@ -90,6 +92,8 @@
 		$(document).ready(function () {
 			$('#title').val(title)
 			$('#max-chapter').val(maxChapter)
+
+			const mainElement = $('#main');
 
 			let listChapter = optionChapter(1, maxChapter);
 
@@ -143,7 +147,7 @@
 
 				$('#chapter').val(currentChap + 1);
 
-				getApi();
+				getApi(true);
 			});
 			$(".prev").click(function () {
 				let currentChap = Number($('#chapter').val());
@@ -171,7 +175,7 @@
 				return data;
 			}
 
-			function getApi() {
+			function getApi(next = false) {
 				let url = $('#url').val();
 				let title = $('#title').val();
 				let chapter = $('#chapter').val();
@@ -180,8 +184,9 @@
 					return
 				}
 
-				$('#title-komik').html('');
-				$('.reader-container').html('');
+				if (!next) {
+					mainElement.html('')
+				}
 
 				$('.error-container').css({ display: 'none' })
 				$('#error').html('')
@@ -202,14 +207,28 @@
 						if (result.success) {
 							const data = result.data;
 
-							$('#title-komik').html(data.title)
+
 
 							let listImg = ''
 							data.source.forEach((item, index) => {
 								listImg += '<img src="' + item.src + '">'
 							})
 
-							$('.reader-container').html(listImg);
+							// <h2 class="title-komik"></h2>
+							// <div class="reader-container"></div>
+
+							const titleElement = document.createElement('h1')
+							titleElement.setAttribute('class', 'title-komik')
+							titleElement.textContent = data.title
+
+							const bodyKomikElement = document.createElement('div')
+							bodyKomikElement.setAttribute('class', 'reader-container')
+							bodyKomikElement.innerHTML = listImg
+
+							// $('#title-komik').html(data.title)
+							// $('.reader-container').html(listImg);
+
+							mainElement.append(titleElement, bodyKomikElement)
 
 							// addDownloadBtn();
 

@@ -18,7 +18,7 @@ header {
 	padding-bottom: 24px;
 }
 
-#title-komik {
+.title-komik {
 	text-align: center;
 }
 
@@ -26,6 +26,7 @@ header {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	margin-bottom: 64px;
 }
 
 .reader-container img {
