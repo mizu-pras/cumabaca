@@ -137,7 +137,7 @@
 				}
 			})
 
-			$(".next").click(function () {
+			function nextHanlde(append = false) {
 				let currentChap = Number($('#chapter').val());
 
 				if (currentChap + 1 > maxChapter) {
@@ -147,8 +147,13 @@
 
 				$('#chapter').val(currentChap + 1);
 
-				getApi(true);
+				getApi(append);
+			}
+
+			$(".next").click(function () {
+				nextHanlde()
 			});
+
 			$(".prev").click(function () {
 				let currentChap = Number($('#chapter').val());
 
@@ -174,6 +179,8 @@
 				}
 				return data;
 			}
+
+			let isNextRunning = false
 
 			function getApi(next = false) {
 				let url = $('#url').val();
@@ -242,9 +249,34 @@
 						const message = err.responseJSON.error ? err.responseJSON.error : err.statusText
 						$('.error-container').css({ display: 'flex' })
 						$('#error').html(message)
+					},
+					complete: function () {
+						if (next) {
+							setTimeout(() => {
+								isNextRunning = false
+							}, 1000)
+						}
 					}
 				});
 			}
+
+			function handleScroll() {
+				let documentHeight = document.body.scrollHeight;
+				let currentScroll = window.scrollY + window.innerHeight;
+				// When the user is [modifier]px from the bottom, fire the event.
+				let modifier = 4000;
+				if (currentScroll + modifier > documentHeight) {
+					if (isNextRunning) {
+						return
+					}
+
+					isNextRunning = true
+
+					nextHanlde(true)
+				}
+			}
+
+			document.addEventListener('scroll', handleScroll)
 
 			/* Callback for button's "click" event */
 			// function doit() {
