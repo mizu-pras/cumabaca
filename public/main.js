@@ -1,4 +1,5 @@
 const CONFIG_DEFAULT = {
+    appName: 'Cuma Baca',
     komik: 'https://komiku.id/manga/versatile-mage'
 }
 
@@ -64,7 +65,11 @@ class MainApp {
 
         this.komik = LocalConfig.getData('komik', CONFIG_DEFAULT['komik']);
 
-        this.getChapterList()
+        this.getChapterList(() => {
+            MainUI.instance.showUI()
+        })
+
+        MainUI.instance.init()
 
         // add event listener
     }
@@ -74,19 +79,19 @@ class MainApp {
     }
 
     changeKomik(url) {
-        url = validateAndFormatURL(url)
-
-        if (!url) {
-            return
-        }
-
         this.komikData = []
         this.komik = LocalConfig.setData('komik', url);
 
-        this.getChapterList();
+        this.getChapterList(() => {
+            MainUI.instance.chapterOptionBuilder();
+        });
     }
 
-    changeChapter(chapter) {
+    changeChapter(chapter, forceReplace = false) {
+        if (chapter === this.activeChapter) {
+            return
+        }
+
         if (!this.komik) {
             console.log('tidak ada komik yang dipilih');
             return
@@ -103,7 +108,7 @@ class MainApp {
 
         const isNextChapter = curChapIndex - 1 === targetChapIndex
 
-        if (!isNextChapter) {
+        if (!isNextChapter || forceReplace) {
             this.komikData = []
         }
 
@@ -117,7 +122,11 @@ class MainApp {
     }
 
     // api
-    async getChapterList() {
+    /**
+     * 
+     * @param {Function | undefined} cb 
+     */
+    async getChapterList(cb = undefined) {
         try {
             const params = new URLSearchParams({
                 url: this.komik
@@ -156,16 +165,29 @@ class MainApp {
                 this.getKomikData();
             }
 
+            if (cb) {
+                cb();
+            }
+
         } catch (error) {
             // reset
             this.komik = '';
             this.activeChapter = '';
 
-            console.log(error)
+            console.log(error);
+
+            if (cb) {
+                cb();
+            }
         }
     }
 
     async getKomikData() {
+        MainUI.instance.komikStatusRemove();
+
+        const idLoading = 'loading'
+        MainUI.instance.komikStatusBuilder(idLoading, 'Loading...');
+
         try {
             if (!this.activeChapter) {
                 throw new Error('tidak ada chapter yang dipilih')
@@ -197,25 +219,14 @@ class MainApp {
 
             this.komikData.push(data);
 
+            MainUI.instance.komikStatusRemove();
+
         } catch (error) {
             console.log(error)
+
+            MainUI.instance.komikStatusRemove(idLoading);
+            MainUI.instance.komikStatusBuilder('', error.message, true);
         }
-    }
-}
-
-function validateAndFormatURL(url) {
-    try {
-        let parsedUrl = new URL(url);
-
-        let formattedUrl = parsedUrl.origin + parsedUrl.pathname;
-        if (formattedUrl.endsWith('/')) {
-            formattedUrl = formattedUrl.slice(0, -1); // Menghapus '/' di akhir jika ada
-        }
-
-        return formattedUrl;
-    } catch (e) {
-        console.error("URL tidak valid:", url);
-        return null;
     }
 }
 
