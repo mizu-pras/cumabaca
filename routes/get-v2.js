@@ -23,7 +23,7 @@ router.post('/per-chapter', async (req, res, next) => {
         prefix += '/';
     }
 
-    const buildurl = `${prefix}${title}-chapter-${chapter}`
+    const buildurl = `${title}-chapter-${chapter}`
 
     console.log('buildurl', buildurl);
 
@@ -32,9 +32,20 @@ router.post('/per-chapter', async (req, res, next) => {
     };
 
     try {
-        const response = await axios.get(buildurl, options);
+        const response = await axios.get(prefix + buildurl, options);
         if (response.status != 200) {
             throw new Error(`get to ${buildurl} failed`);
+        }
+
+        if (!response.data) {
+            console.log('try', 'httpsadmin-komiku-org')
+
+            const response2 = await axios.get(prefix + 'httpsadmin-komiku-org' + buildurl)
+            if (response2.status != 200) {
+                throw new Error(`get to ${buildurl} failed`);
+            }
+
+            response.data = response2.data
         }
 
         const result = response.data.replace(/[\t\r\n]/g, '').trim()

@@ -29,6 +29,13 @@
 			</select> -->
 			<input type="text" id="title" value="versatile-mage">
 
+			<div>
+				<label for="max-chapter">Max chapter:</label>
+				<input type="text" id="max-chapter" value="850">
+			</div>
+		</div>
+
+		<div class="chapter-container">
 			<select id="chapter"></select>
 		</div>
 	</content>
@@ -66,7 +73,7 @@
 		var lastChap = localStorage.getItem('lastChap');
 
 		$(document).ready(function () {
-			let maxChapter = 424;
+			const maxChapter = $('#max-chapter').val();
 			const title = []
 
 			let listChapter = optionChapter(1, maxChapter);
@@ -83,6 +90,18 @@
 			$('#title').on('change', function () {
 				getApi();
 			});
+
+			$('#max-chapter').on('change', function () {
+				const maxChapter = Number($('#max-chapter').val())
+
+				$('#chapter').html('')
+
+				if (!isNaN(maxChapter)) {
+					let listChapter = optionChapter(1, maxChapter);
+
+					$('#chapter').html(listChapter);
+				}
+			})
 
 			$(".next").click(function () {
 				let currentChap = Number($('#chapter').val());
