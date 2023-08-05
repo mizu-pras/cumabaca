@@ -12,7 +12,7 @@
 
 	<header>
 		<h1>Cuma Baca</h1>
-		<p>Tempat sederhana untuk membaca komik dari <a href="https://komiku.id" target="_blank">komiku</a></p>
+		<p>Tempat paling sederhana untuk membaca komik dari <a href="https://komiku.id" target="_blank">komiku</a></p>
 	</header>
 
 	<content class="input-container">
@@ -53,14 +53,6 @@
 		<button class="next">Lanjut</button>
 	</div>
 
-	<div class="error-container">
-		<p id="error"></p>
-	</div>
-
-	<div class="loading-container">
-		<p>Loading...</p>
-	</div>
-
 	<div id="main">
 		<!-- <h2 class="title-komik"></h2>
 		<div class="reader-container"></div> -->
@@ -97,6 +89,18 @@
 		let title = localStorage.getItem('title')
 		let maxChapter = localStorage.getItem('maxChapter')
 		let prefix = localStorage.getItem('prefix')
+
+		const loadingElement = document.createElement('div')
+		loadingElement.setAttribute('class', 'loading-container')
+		loadingElement.innerHTML = '<p>Loading...</p>'
+
+		const errorElementBuilder = (msg = '') => {
+			const el = document.createElement('div')
+			el.setAttribute('class', 'error-container')
+			el.innerHTML = `<p>${msg}</p>`
+
+			return el
+		}
 
 		$(document).ready(function () {
 			$('#title').val(title)
@@ -259,10 +263,10 @@
 					mainElement.html('')
 				}
 
-				$('.error-container').css({ display: 'none' })
-				$('#error').html('')
+				$('.error-container').remove()
 
-				$('.loading-container').css({ display: 'flex' })
+				// $('.loading-container').css({ display: 'flex' })
+				mainElement.append(loadingElement)
 
 				$.ajax({
 					url: API,
@@ -273,12 +277,8 @@
 						chapter: chapter
 					},
 					success: function (result) {
-						$('.loading-container').css({ display: 'none' })
-
 						if (result.success) {
 							const data = result.data;
-
-
 
 							let listImg = ''
 							data.source.forEach((item, index) => {
@@ -303,18 +303,18 @@
 
 							// addDownloadBtn();
 
-							$('.error-container').css({ display: 'none' })
-							$('#error').html('')
+							$('.error-container').remove()
 						}
 					},
 					error: function (err) {
-						$('.loading-container').css({ display: 'none' })
-
 						const message = err.responseJSON.error ? err.responseJSON.error : err.statusText
-						$('.error-container').css({ display: 'flex' })
-						$('#error').html(message)
+
+						const errElement = errorElementBuilder(message)
+						mainElement.append(errElement)
 					},
 					complete: function () {
+						$('.loading-container').remove()
+
 						if (next) {
 							setTimeout(() => {
 								isNextRunning = false

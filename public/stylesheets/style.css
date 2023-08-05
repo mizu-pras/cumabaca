@@ -83,12 +83,11 @@ select,
 
 .error-container,
 .loading-container {
-	/* display: flex; */
-	display: none;
+	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-#error {
+.error-container {
 	color: red;
 }
