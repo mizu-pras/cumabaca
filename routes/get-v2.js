@@ -38,20 +38,22 @@ router.post('/per-chapter', async (req, res, next) => {
         }
 
         if (!response.data) {
-            console.log('try', '-bahasa-indonesia/')
+            const url2 = prefix + buildurl + '-bahasa-indonesia'
+            console.log('try', url2)
 
-            const response2 = await axios.get(prefix + buildurl + '-bahasa-indonesia')
+            const response2 = await axios.get(url2)
             if (response2.status != 200) {
                 throw new Error(`get to ${buildurl} failed`);
             }
 
-            if (response.data) {
+            if (response2.data) {
                 response.data = response2.data
             }
             else {
-                console.log('try', 'httpsadmin-komiku-org')
+                const url3 = prefix + 'httpsadmin-komiku-org' + buildurl
+                console.log('try', url3)
 
-                const response3 = await axios.get(prefix + 'httpsadmin-komiku-org' + buildurl)
+                const response3 = await axios.get(url3)
                 if (response3.status != 200) {
                     throw new Error(`get to ${buildurl} failed`);
                 }
