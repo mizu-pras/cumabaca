@@ -38,14 +38,26 @@ router.post('/per-chapter', async (req, res, next) => {
         }
 
         if (!response.data) {
-            console.log('try', 'httpsadmin-komiku-org')
+            console.log('try', '-bahasa-indonesia/')
 
-            const response2 = await axios.get(prefix + 'httpsadmin-komiku-org' + buildurl)
+            const response2 = await axios.get(prefix + buildurl + '-bahasa-indonesia')
             if (response2.status != 200) {
                 throw new Error(`get to ${buildurl} failed`);
             }
 
-            response.data = response2.data
+            if (response.data) {
+                response.data = response2.data
+            }
+            else {
+                console.log('try', 'httpsadmin-komiku-org')
+
+                const response3 = await axios.get(prefix + 'httpsadmin-komiku-org' + buildurl)
+                if (response3.status != 200) {
+                    throw new Error(`get to ${buildurl} failed`);
+                }
+
+                response.data = response3.data;
+            }
         }
 
         const result = response.data.replace(/[\t\r\n]/g, '').trim()

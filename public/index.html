@@ -18,24 +18,28 @@
 	<content class="input-container">
 		<input type="hidden" value="424" id="totalChapter">
 
-		<div class="prefix-container">
-			<label for="url">Prefix URL:</label>
-			<input type="text" id="url" value="https://komiku.id/ch/">
-		</div>
-
 		<div class="info-container">
 			<!-- <select id="title">
 				<option value="versatile-mage">Versatile Mage</option>
 			</select> -->
-			<input type="text" id="title" value="versatile-mage">
+			<div>
+				<label for="url">Prefix URL:</label>
+				<input type="text" id="url" value="https://komiku.id/ch/">
+			</div>
+
+			<div>
+				<label for="title">Title:</label>
+				<input type="text" id="title" value="">
+			</div>
 
 			<div>
 				<label for="max-chapter">Max chapter:</label>
-				<input type="text" id="max-chapter" value="850">
+				<input type="text" id="max-chapter" value="">
 			</div>
 		</div>
 
 		<div class="chapter-container">
+			<label for="chapter">Select chapter:</label>
 			<select id="chapter"></select>
 		</div>
 	</content>
@@ -70,11 +74,22 @@
 			localStorage.setItem('lastChap', 1)
 		}
 
+		if (!localStorage.title) {
+			console.log('run 1')
+			localStorage.setItem('title', 'versatile-mage')
+		}
+
+		if (!localStorage.maxChapter) {
+			localStorage.setItem('maxChapter', 850)
+		}
+
 		var lastChap = localStorage.getItem('lastChap');
+		let title = localStorage.getItem('title')
+		let maxChapter = localStorage.getItem('maxChapter')
 
 		$(document).ready(function () {
-			const maxChapter = $('#max-chapter').val();
-			const title = []
+			$('#title').val(title)
+			$('#max-chapter').val(maxChapter)
 
 			let listChapter = optionChapter(1, maxChapter);
 
@@ -88,7 +103,11 @@
 			});
 
 			$('#title').on('change', function () {
+				$('#chapter').val('1')
+
 				getApi();
+
+				localStorage.title = $('#title').val();
 			});
 
 			$('#max-chapter').on('change', function () {
@@ -97,9 +116,20 @@
 				$('#chapter').html('')
 
 				if (!isNaN(maxChapter)) {
+
 					let listChapter = optionChapter(1, maxChapter);
 
 					$('#chapter').html(listChapter);
+
+					let lastVal = localStorage.getItem('lastChap')
+					if (maxChapter < Number(lastVal)) {
+						$('#chapter').val(maxChapter).change()
+					}
+					else {
+						$('#chapter').val(lastVal)
+					}
+
+					localStorage.maxChapter = maxChapter;
 				}
 			})
 
@@ -146,8 +176,15 @@
 				let title = $('#title').val();
 				let chapter = $('#chapter').val();
 
+				if (!url || !title || !chapter) {
+					return
+				}
+
 				$('#title-komik').html('');
 				$('.reader-container').html('');
+
+				$('.error-container').css({ display: 'none' })
+				$('#error').html('')
 
 				$('.loading-container').css({ display: 'flex' })
 

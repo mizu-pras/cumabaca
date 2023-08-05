@@ -68,15 +68,13 @@ select,
 }
 
 .info-container {
-	margin-top: 4px;
 	display: flex;
 	align-items: center;
 	gap: 16px;
 }
 
-.prefix-container {
-	display: flex;
-	align-items: center;
+.chapter-container {
+	margin-top: 4px;
 }
 
 .error-container,
