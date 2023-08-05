@@ -51,8 +51,8 @@ class MainUI {
         const appDesc = document.createElement('h3')
         appDesc.setAttribute('class', 'subtitle');
         appDesc.innerHTML = `
-            Tempat paling sederhana untuk membaca komik dari
-            <a href="https://komiku.id" target="_blank">komiku</a>
+            Tempat paling efisien untuk membaca komik dari
+            <a href="https://komiku.id" target="_blank">Komiku.id</a>
         `
 
         header.append(appTitle);
@@ -84,11 +84,11 @@ class MainUI {
 
         const submitButton = document.createElement('button');
         submitButton.setAttribute('type', 'submit');
-        submitButton.textContent = 'Submit';
+        submitButton.textContent = 'Kirim';
 
         const clearSubmit = document.createElement('button');
         clearSubmit.setAttribute('type', 'reset');
-        clearSubmit.textContent = 'Clear';
+        clearSubmit.textContent = 'Hapus';
 
         formControll.append(labelUrl, inputurl);
         formContainer.append(formControll, submitButton, clearSubmit);
@@ -104,7 +104,7 @@ class MainUI {
 
         const labelChapter = document.createElement('label');
         labelChapter.setAttribute('for', 'url');
-        labelChapter.textContent = 'Pilih Chapter:'
+        labelChapter.textContent = 'Pilih Bab:'
 
         this.chapterElement = document.createElement('select');
         this.chapterElement.setAttribute('name', 'chapter');
