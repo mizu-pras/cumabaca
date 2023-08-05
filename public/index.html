@@ -42,6 +42,10 @@
 		<p id="error"></p>
 	</div>
 
+	<div class="loading-container">
+		<p>Loading...</p>
+	</div>
+
 	<h2 id="title-komik"></h2>
 	<div class="reader-container"></div>
 
@@ -121,8 +125,10 @@
 				let title = $('#title').val();
 				let chapter = $('#chapter').val();
 
-				$('#title-komik').html('')
+				$('#title-komik').html('');
 				$('.reader-container').html('');
+
+				$('.loading-container').css({ display: 'flex' })
 
 				$.ajax({
 					url: API,
@@ -133,6 +139,8 @@
 						chapter: chapter
 					},
 					success: function (result) {
+						$('.loading-container').css({ display: 'none' })
+
 						if (result.success) {
 							const data = result.data;
 
@@ -152,6 +160,8 @@
 						}
 					},
 					error: function (err) {
+						$('.loading-container').css({ display: 'none' })
+
 						const message = err.responseJSON.error ? err.responseJSON.error : err.statusText
 						$('.error-container').css({ display: 'flex' })
 						$('#error').html(message)
