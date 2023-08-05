@@ -155,6 +155,8 @@ class MainApp {
 
         this.isFetchChapterRunning = true;
 
+        MainUI.instance.loadingLoadChapterList()
+
         try {
             const params = new URLSearchParams({
                 url: this.komik
@@ -193,6 +195,7 @@ class MainApp {
                 this.getKomikData(true, MainUI.instance.fetchKomikDataCallback.bind(MainUI.instance));
             }
 
+            MainUI.instance.loadingLoadChapterListRemove();
             this.isFetchChapterRunning = false;
             if (cb) {
                 cb();
@@ -205,6 +208,7 @@ class MainApp {
 
             console.log(error);
 
+            MainUI.instance.loadingLoadChapterListRemove();
             this.isFetchChapterRunning = false;
             if (cb) {
                 cb();

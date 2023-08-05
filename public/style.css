@@ -104,3 +104,9 @@ button {
     width: 100%;
     max-width: 920px;
 }
+
+.loading-chapter-list {
+    display: inline-block;
+    padding: 0 16px;
+    color: green;
+}

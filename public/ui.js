@@ -93,7 +93,7 @@ class MainUI {
         formControll.append(labelUrl, inputurl);
         formContainer.append(formControll, submitButton, clearSubmit);
 
-        this.formKomik.append(formContainer);
+        this.formKomik.prepend(formContainer);
 
         this.rootElement.append(this.formKomik);
     }
@@ -257,6 +257,24 @@ class MainUI {
         }
         else {
             this.render.after(controllContainer);
+        }
+    }
+
+    loadingLoadChapterList() {
+        const loading = document.createElement('span');
+        loading.setAttribute('class', 'loading-chapter-list');
+
+        const komik = MainApp.instance.komik;
+
+        loading.innerHTML = `Load chapters list for <a target="_blank" href="${komik}">${komik}`;
+
+        this.formKomik.append(loading);
+    }
+
+    loadingLoadChapterListRemove() {
+        const loadings = document.querySelectorAll('loading-chapter-list');
+        if (loadings.length > 0) {
+            this.formKomik.removeChild(...loadings);
         }
     }
 
