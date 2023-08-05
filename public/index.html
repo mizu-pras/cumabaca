@@ -141,7 +141,9 @@
 				let currentChap = Number($('#chapter').val());
 
 				if (currentChap + 1 > maxChapter) {
-					alert('sudah di chapter terakhir');
+					if (!append) {
+						alert('sudah di chapter terakhir');
+					}
 					return
 				}
 
