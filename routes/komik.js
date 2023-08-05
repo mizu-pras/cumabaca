@@ -1,89 +1,69 @@
 const express = require('express');
-const axios = require('axios');
-const { getDomain, loadCheerio } = require('../utils/index')
+const { fetchData, validateUrl } = require('../utils/index')
 
 const router = express.Router();
 
 router.get('/chapters', async (req, res, next) => {
-    const { url } = req.query
-
-    const domain = getDomain(url)
-    if (!domain) {
-        return next(new Error('url tidak valid'));
-    }
+    const { url } = req.query;
 
     try {
-        const response = await axios(url)
+        const domain = validateUrl(url);
+        const $ = await fetchData(url);
 
-        if (!response.data) {
-            throw new Error('Ada yang salah!');
-        }
+        const data = [];
 
-        const $ = loadCheerio(response.data);
-
-        const data = []
-
-        const chapterListElement = $('.judulseries')
+        const chapterListElement = $('.judulseries');
         chapterListElement.each((index, el) => {
-            const element = $(el)
-            const anchor = element.children('a')
+            const element = $(el);
+            const anchor = element.children('a');
 
-            const href = anchor.attr('href')
+            const href = anchor.attr('href');
             if (!href) {
-                return
+                return;
             }
 
-            const chapter = anchor.children('[itemprop="itemListElement"]').text()
+            const chapter = anchor.children('[itemprop="itemListElement"]').text();
 
             data.push({
                 chapter,
                 url: domain + href
-            })
-        })
+            });
+        });
 
         res.json({
             url,
             data
-        })
+        });
     } catch (error) {
         next(error);
     }
-})
+});
 
 router.get('/data', async (req, res, next) => {
     const { url } = req.query;
 
-    if (!getDomain(url)) {
-        return next(new Error('url tidak valid'));
-    }
-
     try {
-        const response = await axios(url);
-
-        if (!response.data) {
-            throw new Error('Ada yang salah!');
-        }
-
-        const $ = loadCheerio(response.data);
+        validateUrl(url);
+        const $ = await fetchData(url);
 
         const title = $('#Judul h1').first().text().trim();
         const Images = $('#Baca_Komik img');
 
         const data = [];
-        Images.each((index, img) => {
+        Images.each((_, img) => {
             const imgEl = $(img);
 
             data.push(imgEl.attr('src'));
-        })
+        });
 
         res.json({
             title,
             data
-        })
+        });
 
     } catch (error) {
         next(error);
     }
-})
+});
 
 module.exports = router;
