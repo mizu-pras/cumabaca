@@ -50,10 +50,13 @@ Follow these steps to enjoy comics on *Cuma Baca*:
 The platform is designed for a variety of devices.
 
 #### Mobile
+
 ![Mobile view](/screenshot/mobile.PNG "Mobile View")
 
 #### Tablet
+
 ![Tablet view](/screenshot/tablet.jpg "Tablet View")
 
 #### Desktop
+
 ![Desktop view](/screenshot/desktop.png "Desktop View")
