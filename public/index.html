@@ -76,6 +76,10 @@
 				localStorage.lastChap = Number($('#chapter').val());
 			});
 
+			$('#title').on('change', function () {
+				getApi();
+			});
+
 			$(".next").click(function () {
 				let currentChap = Number($('#chapter').val());
 
@@ -116,6 +120,9 @@
 				let url = $('#url').val();
 				let title = $('#title').val();
 				let chapter = $('#chapter').val();
+
+				$('#title-komik').html('')
+				$('.reader-container').html('');
 
 				$.ajax({
 					url: API,
