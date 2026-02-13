@@ -86,6 +86,7 @@ class MainApp {
         this.chapterTitle = '';
 
         this.komik = LocalConfig.setData('komik', url);
+        MainUI.instance.render.innerHTML = '';
 
         this.getChapterList(() => {
             MainUI.instance.showUI();

@@ -90,7 +90,13 @@ class MainUI {
             'text-gray-600 hover:text-gray-800 transition-colors';
         aboutLink.textContent = 'Tentang Kami';
 
-        nav.append(homeLink, aboutLink);
+        const websitesLink = document.createElement('a');
+        websitesLink.href = '/websites.html';
+        websitesLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
+        websitesLink.textContent = 'Website yang Didukung';
+
+        nav.append(homeLink, aboutLink, websitesLink);
 
         header.append(appTitle);
         header.append(appDesc);
