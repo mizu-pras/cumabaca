@@ -4,7 +4,7 @@ npm-debug.log
 .gitignore
 README.md
 .env
-public/output.css
+# public/output.css commented out for development hot-reload
 .DS_Store
 *.log
 .vscode

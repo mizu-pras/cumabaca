@@ -13,5 +13,12 @@ module.exports = {
             lang: 'id',
             useBrowser: true,
         },
+        toongod: {
+            name: 'Toongod',
+            domains: ['toongod.org'],
+            baseUrl: 'https://toongod.org',
+            lang: 'en',
+            useBrowser: true,
+        },
     },
 };

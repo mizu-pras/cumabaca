@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const { chromium } = require('playwright');
+const puppeteer = require('puppeteer');
 
 // Validates URL and returns its origin
 const getDomain = (url) => {
@@ -43,11 +43,20 @@ const validateUrl = (url) => {
 const fetchDataWithBrowser = async (url) => {
     let browser = null;
     try {
-        browser = await chromium.launch();
+        browser = await puppeteer.launch({
+            executablePath: '/usr/bin/chromium-browser',
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu'
+            ]
+        });
         const page = await browser.newPage();
 
         // Navigate and wait for network to be idle
-        await page.goto(url, { waitUntil: 'networkidle' });
+        await page.goto(url, { waitUntil: 'networkidle0' });
 
         // Get the rendered HTML
         const html = await page.content();

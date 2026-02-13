@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development  # Use dev stage
+    container_name: cumabaca-dev
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Mount source code for hot-reload
+      # :z flag for SELinux compatibility (Podman on Fedora)
+      - ./routes:/app/routes:z
+      - ./scrapers:/app/scrapers:z
+      - ./config:/app/config:z
+      - ./utils:/app/utils:z
+      - ./public:/app/public:z
+      - ./app.js:/app/app.js:z
+      - ./bin:/app/bin:z
+      # Preserve node_modules in container
+      - /app/node_modules
+    # CMD runs both nodemon + CSS watcher (defined in Dockerfile)

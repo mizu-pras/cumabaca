@@ -1,10 +1,17 @@
 # Multi-stage Dockerfile for Cuma Baca
-# Uses official Playwright image with all required browser dependencies
+# Uses Alpine + Puppeteer for minimal image size
 
 # Stage 1: Builder
-FROM mcr.microsoft.com/playwright:v1.58.2-jammy AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Install build dependencies for native modules
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    postgresql-client
 
 # Copy package files
 COPY package*.json ./
@@ -18,14 +25,67 @@ COPY . .
 # Build Tailwind CSS
 RUN npm run build:css
 
-# Install Playwright browsers
-RUN npx playwright install chromium
 
-# Stage 2: Production
-FROM mcr.microsoft.com/playwright:v1.58.2-jammy
+# Stage 2: Development (with hot-reload support)
+FROM node:20-alpine AS development
 
-# Create non-root user first
-RUN useradd -m -u 1001 -s /bin/bash appuser
+# Install Chromium for Puppeteer (needed for Komikcast scraper)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Tell Puppeteer to skip installing Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+WORKDIR /app
+
+# Install ALL dependencies (including devDependencies for nodemon)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source files
+COPY . .
+
+# Build CSS once for initial run
+RUN npm run build:css
+
+# Run as root for development mode to allow volume write access
+# (acceptable for local development; production stage still uses non-root user)
+# No USER directive in development stage
+
+EXPOSE 3100
+
+# Override with dev command that runs both nodemon and CSS watcher
+CMD ["sh", "-c", "npm run build:css -- --watch & npm run dev"]
+
+
+# Stage 3: Production
+FROM node:20-alpine
+
+# Install Chromium and its dependencies
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    # Chromium dependency
+    && rm -rf /var/cache/apk/*
+
+# Tell Puppeteer to skip installing Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Create non-root user
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S -u 1001 -G appuser appuser
 
 WORKDIR /app
 
@@ -38,9 +98,6 @@ COPY --chown=appuser:appuser package*.json ./
 # Install only production dependencies
 RUN npm ci --only=production && \
     chown -R appuser:appuser /app/node_modules
-
-# Install Playwright browsers for production
-RUN npx playwright install chromium --with-deps
 
 # Copy built assets from builder
 COPY --chown=appuser:appuser --from=builder /app/public/output.css ./public/output.css
@@ -69,4 +126,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Start the application
 CMD ["node", "./bin/www"]
-

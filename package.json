@@ -19,7 +19,7 @@
         "memory-cache": "^0.2.0",
         "method-override": "^3.0.0",
         "morgan": "~1.9.1",
-        "playwright": "^1.58.2"
+        "puppeteer": "^23.11.1"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.1.18",

@@ -49,13 +49,14 @@ docker-compose down
 
 **Key files:**
 
-- `Dockerfile` - Multi-stage build using Playwright base image (includes Chromium for headless browser scraping)
-- `docker-compose.yml` - Service configuration with resource limits and volume mounts
+- `Dockerfile` - Multi-stage build with development (hot-reload) and production stages
+- `docker-compose.yml` - Production configuration with resource limits
+- `docker-compose.dev.yml` - Development configuration with hot-reload volume mounts
 - `.dockerignore` - Excludes unnecessary files from build context
 
 **Container details:**
 
-- **Base image:** `mcr.microsoft.com/playwright:v1.58.2-jammy`
+- **Base image:** `node:20-alpine` with Chromium for Puppeteer
 - **Port:** 3100 (exposed)
 - **User:** Runs as non-root user `appuser` (UID 1001)
 - **Health check:** HTTP GET to `/` every 30s (10s timeout, 40s start period)
@@ -64,6 +65,65 @@ docker-compose down
 **Volumes:**
 
 - `./logs:/app/logs` - Persistent logs directory
+
+### Docker Development (Hot-Reload)
+
+Development mode supports live reloading without rebuilding the container.
+
+**Prerequisites:**
+
+```bash
+# Install podman-compose (Fedora/CentOS/RHEL)
+sudo dnf install podman-compose
+
+# Or via pip
+pip install podman-compose
+```
+
+**Development commands:**
+
+```bash
+# Initial setup (first time - builds and starts)
+podman-compose -f docker-compose.dev.yml up --build
+
+# Daily development (starts dev container with hot-reload)
+podman-compose -f docker-compose.dev.yml up
+
+# View logs
+podman-compose -f docker-compose.dev.yml logs -f
+
+# Stop dev container
+podman-compose -f docker-compose.dev.yml down
+```
+
+**What works with hot-reload:**
+
+| Change Type | Behavior |
+|-------------|----------|
+| **JS/Route/Scraper changes** | Nodemon auto-restarts instantly |
+| **CSS changes** | PostCSS watcher rebuilds output.css automatically |
+| **package.json changes** | Rebuild with `--build` flag |
+| **Dockerfile changes** | Rebuild with `--build` flag |
+
+**Development stage details:**
+
+- Installs ALL dependencies (including devDependencies like nodemon)
+- Runs both CSS watcher and nodemon in parallel
+- Volume mounts source code for instant sync
+- Preserves node_modules inside container
+
+**Quick reference:**
+
+```bash
+# Start development
+podman-compose -f docker-compose.dev.yml up
+
+# Start production
+podman-compose up -d
+
+# Rebuild when dependencies change
+podman-compose -f docker-compose.dev.yml up --build
+```
 
 ## Architecture
 
@@ -145,7 +205,8 @@ Scraping utilities in `utils/index.js`:
 1. **No test suite** - The project currently has no tests
 2. **No authentication** - The app is completely open, no user system
 3. **Environment** - Port is configurable via environment variable (defaults to Express standard)
-4. **Deployment** - Supports Docker with multi-stage build using Playwright base image
-4. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`
-5. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
-6. **Headless browser** - Playwright (chromium) is used for sites requiring JavaScript rendering
+4. **Deployment** - Supports Docker with multi-stage build (development + production stages)
+5. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`
+6. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
+7. **Headless browser** - Puppeteer with Chromium is used for sites requiring JavaScript rendering
+8. **Hot-reload** - Docker development mode supports instant reload for JS/CSS changes
