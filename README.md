@@ -1,6 +1,6 @@
 # Cuma Baca
 
-A minimalist comic scraper from [komiku.org](https://komiku.org), *Just Read* focuses on delivering a clean, distraction-free reading experience.
+A minimalist comic scraper from [komiku.org](https://komiku.org), _Just Read_ focuses on delivering a clean, distraction-free reading experience.
 
 - Node.js (v18)
 - npm (v9)
@@ -40,7 +40,8 @@ Follow these instructions to set up and run Just Read on your local machine:
 
 ### Usage
 
-Follow these steps to enjoy comics on *Cuma Baca*:
+Follow these steps to enjoy comics on _Cuma Baca_:
+
 1. Visit [komiku.org](https://komiku.org) and find a comic you want to read.
 2. Copy the comic's URL and paste it into the [cuma baca](https://cumabaca.onrender.com). For example, a valid comic URL would look like: `https://komiku.org/manga/versatile-mage/`
 3. Enjoy an uninterrupted reading experience.
@@ -51,12 +52,12 @@ The platform is designed for a variety of devices.
 
 #### Mobile
 
-![Mobile view](/screenshot/mobile.PNG "Mobile View")
+![Mobile view](/screenshot/mobile.PNG 'Mobile View')
 
 #### Tablet
 
-![Tablet view](/screenshot/tablet.jpg "Tablet View")
+![Tablet view](/screenshot/tablet.jpg 'Tablet View')
 
 #### Desktop
 
-![Desktop view](/screenshot/desktop.png "Desktop View")
+![Desktop view](/screenshot/desktop.png 'Desktop View')
