@@ -12,6 +12,9 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 # Install dependencies
 npm install
 
+# Build CSS (Tailwind v4 via PostCSS)
+npm run build:css
+
 # Development mode (auto-reload on changes)
 npm run dev
 
@@ -43,7 +46,13 @@ The frontend is a single-page application using vanilla JavaScript with a single
 - **`public/assets/main.js`** - MainApp class handles data fetching, state management, and chapter navigation
 - **`public/assets/ui.js`** - MainUI class handles DOM manipulation and user interactions
 - **`public/index.html`** - Single HTML entry point
-- **`public/assets/style.css`** - Responsive styles (mobile-first)
+- **`public/input.css`** - Tailwind CSS v4 imports (compiled to `public/output.css`)
+
+**UI Components:**
+- Form submission with loading states (spinner animation, disabled inputs)
+- Floating chapter selector with back-to-top button
+- Chapter dropdown for navigation
+- Prev/Next chapter controls
 
 **State persistence:** Uses localStorage to remember the current chapter between sessions.
 
@@ -63,3 +72,4 @@ Scraping utilities in `utils/index.js`:
 1. **No test suite** - The project currently has no tests
 2. **No authentication** - The app is completely open, no user system
 3. **Environment** - Port is configurable via environment variable (defaults to Express standard)
+4. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`

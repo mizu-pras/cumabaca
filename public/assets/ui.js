@@ -16,6 +16,15 @@ class MainUI {
     /** @type {HTMLButtonElement | null} */
     chapterTriggerButton = null;
 
+    /** @type {HTMLInputElement | null} */
+    urlInput = null;
+
+    /** @type {HTMLButtonElement | null} */
+    submitButton = null;
+
+    /** @type {HTMLButtonElement | null} */
+    clearButton = null;
+
     static _instance;
 
     static get instance() {
@@ -63,8 +72,7 @@ class MainUI {
         const appDesc = document.createElement('h3');
         appDesc.className = 'font-normal m-0';
         appDesc.innerHTML = `
-            Tempat paling efisien untuk membaca komik dari
-            <a href="https://komiku.org" target="_blank">komiku.org</a>
+            Tempat paling efisien untuk membaca komik
         `;
 
         header.append(appTitle);
@@ -75,7 +83,8 @@ class MainUI {
 
     generateKomikForm() {
         const formContainer = document.createElement('div');
-        formContainer.className = 'px-4 py-[0.3em] flex items-center flex-wrap gap-2';
+        formContainer.className =
+            'px-4 py-[0.3em] flex items-center flex-wrap gap-2';
 
         const formControll = document.createElement('div');
         formControll.className = 'flex items-center gap-1';
@@ -84,29 +93,33 @@ class MainUI {
         labelUrl.setAttribute('for', 'url');
         labelUrl.textContent = 'URL Komik:';
 
-        const inputurl = document.createElement('input');
-        inputurl.className = 'w-[250px] px-4 py-2 border-none border-b border-gray-300';
-        inputurl.setAttribute('type', 'text');
-        inputurl.setAttribute('name', 'url');
-        inputurl.setAttribute('placeholder', 'url komik');
+        this.urlInput = document.createElement('input');
+        this.urlInput.className =
+            'w-[250px] px-4 py-2 border-b border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-gray-500 transition-colors';
+        this.urlInput.setAttribute('type', 'text');
+        this.urlInput.setAttribute('name', 'url');
+        this.urlInput.setAttribute('placeholder', 'url komik');
 
         const komik = MainApp.instance.komik;
         if (komik) {
-            inputurl.setAttribute('value', komik);
+            this.urlInput.setAttribute('value', komik);
         }
 
-        const submitButton = document.createElement('button');
-        submitButton.className = 'px-4 py-2 border-none border-b border-gray-300';
-        submitButton.setAttribute('type', 'submit');
-        submitButton.textContent = 'Kirim';
+        this.submitButton = document.createElement('button');
+        this.submitButton.className =
+            'px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors flex items-center gap-1';
+        this.submitButton.setAttribute('type', 'submit');
+        this.submitButton.innerHTML =
+            '<span class="btn-text">Kirim</span><span class="spinner hidden flex items-center gap-1"><svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading...</span>';
 
-        const clearSubmit = document.createElement('button');
-        clearSubmit.className = 'px-4 py-2 border-none border-b border-gray-300';
-        clearSubmit.setAttribute('type', 'reset');
-        clearSubmit.textContent = 'Hapus';
+        this.clearButton = document.createElement('button');
+        this.clearButton.className =
+            'px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors';
+        this.clearButton.setAttribute('type', 'reset');
+        this.clearButton.textContent = 'Hapus';
 
-        formControll.append(labelUrl, inputurl);
-        formContainer.append(formControll, submitButton, clearSubmit);
+        formControll.append(labelUrl, this.urlInput);
+        formContainer.append(formControll, this.submitButton, this.clearButton);
 
         this.formKomik.prepend(formContainer);
 
@@ -115,14 +128,16 @@ class MainUI {
 
     generateSelectChapter() {
         const chapterSelectConatiner = document.createElement('div');
-        chapterSelectConatiner.className = 'px-4 py-[0.3em] mt-4 flex items-center gap-2';
+        chapterSelectConatiner.className =
+            'px-4 py-[0.3em] mt-4 flex items-center gap-2';
 
         const labelChapter = document.createElement('label');
         labelChapter.setAttribute('for', 'url');
         labelChapter.textContent = 'Pilih Bab:';
 
         this.chapterElement = document.createElement('select');
-        this.chapterElement.className = 'px-4 py-2 border-none border-b border-gray-300';
+        this.chapterElement.className =
+            'px-4 py-2 border-b border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-gray-500 transition-colors';
         this.chapterElement.setAttribute('name', 'chapter');
 
         chapterSelectConatiner.append(labelChapter, this.chapterElement);
@@ -162,7 +177,9 @@ class MainUI {
         }
 
         // Update floating select
-        const floatingSelect = document.querySelector('[data-floating-chapter-select]');
+        const floatingSelect = document.querySelector(
+            '[data-floating-chapter-select]',
+        );
         if (floatingSelect) {
             floatingSelect.innerHTML = '';
             const clonedOptions = options.map((opt) => opt.cloneNode(true));
@@ -259,7 +276,8 @@ class MainUI {
 
     controllBuilder(isTop = false) {
         const controllContainer = document.createElement('div');
-        controllContainer.className = 'px-4 py-[0.3em] my-4 flex items-center justify-between';
+        controllContainer.className =
+            'px-4 py-[0.3em] my-4 flex items-center justify-between';
 
         const prevButton = document.createElement('button');
         prevButton.className = 'px-4 py-2 border-none border-b border-gray-300';
@@ -301,9 +319,44 @@ class MainUI {
     }
 
     loadingLoadChapterListRemove() {
-        const loadings = this.formKomik.querySelectorAll('[data-loading-chapter-list]');
+        const loadings = this.formKomik.querySelectorAll(
+            '[data-loading-chapter-list]',
+        );
         if (loadings.length > 0) {
             this.formKomik.removeChild(...loadings);
+        }
+    }
+
+    setFormLoading(isLoading) {
+        if (!this.submitButton || !this.urlInput || !this.clearButton) {
+            return;
+        }
+
+        const btnText = this.submitButton.querySelector('.btn-text');
+        const spinner = this.submitButton.querySelector('.spinner');
+
+        if (isLoading) {
+            this.urlInput.disabled = true;
+            this.submitButton.disabled = true;
+            this.clearButton.disabled = true;
+
+            if (btnText) btnText.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+        } else {
+            this.urlInput.disabled = false;
+            this.submitButton.disabled = false;
+            this.clearButton.disabled = false;
+
+            if (btnText) btnText.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+        }
+    }
+
+    setChapterSelectLoading(isLoading) {
+        if (this.chapterElement) {
+            this.chapterElement.disabled = isLoading;
+            this.chapterElement.classList.toggle('opacity-50', isLoading);
+            this.chapterElement.classList.toggle('cursor-not-allowed', isLoading);
         }
     }
 
@@ -311,7 +364,9 @@ class MainUI {
         if (this.chapterElement) {
             this.chapterElement.value = value;
         }
-        const floatingSelect = document.querySelector('[data-floating-chapter-select]');
+        const floatingSelect = document.querySelector(
+            '[data-floating-chapter-select]',
+        );
         if (floatingSelect) {
             floatingSelect.value = value;
         }
@@ -319,7 +374,8 @@ class MainUI {
 
     generateBackToTopButton() {
         const button = document.createElement('button');
-        button.className = 'fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gray-800 text-white opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 flex items-center justify-center text-xl';
+        button.className =
+            'fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gray-800 text-white opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 flex items-center justify-center text-xl';
         button.innerHTML = '↑';
         button.setAttribute('aria-label', 'Back to top');
         button.dataset.backToTop = '';
@@ -348,7 +404,8 @@ class MainUI {
 
     generateChapterTrigger() {
         const trigger = document.createElement('button');
-        trigger.className = 'fixed top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 text-sm';
+        trigger.className =
+            'fixed top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 text-sm';
         trigger.innerHTML = '☰ Chapters';
         trigger.setAttribute('aria-label', 'Show chapter selector');
         trigger.dataset.chapterTrigger = '';
@@ -363,27 +420,32 @@ class MainUI {
 
     generateFloatingChapterSelector() {
         const selector = document.createElement('div');
-        selector.className = 'fixed top-0 left-0 right-0 bg-white border-b border-gray-300 px-4 py-3 flex items-center gap-4 transform -translate-y-full transition-transform duration-300 z-50';
+        selector.className =
+            'fixed top-0 left-0 right-0 bg-white border-b border-gray-300 px-4 py-3 flex items-center gap-4 transform -translate-y-full transition-transform duration-300 z-50';
         selector.dataset.floatingSelector = '';
 
         // Prev button
         const prevButton = document.createElement('button');
-        prevButton.className = 'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
+        prevButton.className =
+            'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
         prevButton.textContent = '← Prev';
 
         // Chapter dropdown
         const chapterSelect = document.createElement('select');
-        chapterSelect.className = 'px-4 py-2 border-b border-gray-300 flex-1 min-w-0';
+        chapterSelect.className =
+            'px-4 py-2 border-b border-gray-300 flex-1 min-w-0';
         chapterSelect.dataset.floatingChapterSelect = '';
 
         // Next button
         const nextButton = document.createElement('button');
-        nextButton.className = 'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
+        nextButton.className =
+            'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
         nextButton.textContent = 'Next →';
 
         // Close button
         const closeButton = document.createElement('button');
-        closeButton.className = 'px-3 py-1 text-gray-500 hover:text-gray-700 text-xl';
+        closeButton.className =
+            'px-3 py-1 text-gray-500 hover:text-gray-700 text-xl';
         closeButton.textContent = '×';
         closeButton.addEventListener('click', () => {
             this.toggleChapterSelector();
@@ -392,8 +454,12 @@ class MainUI {
         selector.append(prevButton, chapterSelect, nextButton, closeButton);
 
         // Event listeners
-        prevButton.addEventListener('click', () => MainApp.instance.prevChapter());
-        nextButton.addEventListener('click', () => MainApp.instance.nextChapter(true));
+        prevButton.addEventListener('click', () =>
+            MainApp.instance.prevChapter(),
+        );
+        nextButton.addEventListener('click', () =>
+            MainApp.instance.nextChapter(true),
+        );
         chapterSelect.addEventListener('change', (e) => {
             MainApp.instance.changeChapter(e.target.value, true);
         });

@@ -162,6 +162,7 @@ class MainApp {
 
         this.isFetchChapterRunning = true;
 
+        MainUI.instance.setFormLoading(true);
         MainUI.instance.loadingLoadChapterList();
 
         try {
@@ -213,6 +214,7 @@ class MainApp {
             }
 
             MainUI.instance.loadingLoadChapterListRemove();
+            MainUI.instance.setFormLoading(false);
             this.isFetchChapterRunning = false;
             if (cb) {
                 cb();
@@ -225,6 +227,7 @@ class MainApp {
             console.log(error);
 
             MainUI.instance.loadingLoadChapterListRemove();
+            MainUI.instance.setFormLoading(false);
             this.isFetchChapterRunning = false;
             if (cb) {
                 cb();
@@ -242,6 +245,8 @@ class MainApp {
         }
 
         this.isFetchDataRunning = true;
+
+        MainUI.instance.setChapterSelectLoading(true);
 
         if (clear) {
             MainUI.instance.render.innerHTML = '';
@@ -286,6 +291,7 @@ class MainApp {
             this.chapterTitle = data.title;
 
             this.isFetchDataRunning = false;
+            MainUI.instance.setChapterSelectLoading(false);
 
             if (cb) {
                 cb(clear);
@@ -297,6 +303,7 @@ class MainApp {
             MainUI.instance.komikStatusBuilder('', error.message, true);
 
             this.isFetchDataRunning = false;
+            MainUI.instance.setChapterSelectLoading(false);
         }
     }
 
