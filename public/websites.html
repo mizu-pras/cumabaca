@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <meta
+            name="referrer"
+            content="no-referrer"
+        />
+        <title>Website yang Didukung - Cuma Baca</title>
+
+        <link
+            rel="stylesheet"
+            href="output.css"
+        />
+    </head>
+    <body class="overflow-x-hidden">
+        <div id="root">
+            <header class="px-4 py-4">
+                <h1 class="text-4xl m-0">Cuma Baca</h1>
+                <h3 class="font-normal m-0">
+                    Tempat paling efisien untuk membaca komik
+                </h3>
+
+                <nav class="flex gap-6 mt-4">
+                    <a
+                        href="/"
+                        class="text-gray-600 hover:text-gray-800 transition-colors"
+                        >Home</a
+                    >
+                    <a
+                        href="/about.html"
+                        class="text-gray-600 hover:text-gray-800 transition-colors"
+                        >Tentang Kami</a
+                    >
+                    <a
+                        href="/websites.html"
+                        class="text-gray-800 border-b-2 border-gray-800"
+                        >Website yang Didukung</a
+                    >
+                </nav>
+            </header>
+
+            <main class="about-page max-w-2xl mx-auto px-4 py-12">
+                <h1 class="text-4xl font-bold mb-4">Website yang Didukung</h1>
+                <p class="text-gray-600 mb-8">
+                    Berikut adalah daftar website komik yang saat ini didukung
+                    oleh Cuma Baca:
+                </p>
+
+                <section class="mb-12">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <h2 class="text-2xl font-semibold">Komiku</h2>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                        </div>
+                        <div class="space-y-2 text-gray-700">
+                            <p><strong>Base URL:</strong> <a href="https://komiku.org" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">komiku.org</a></p>
+                            <p><strong>Domain:</strong> komiku.org, komiku.id</p>
+                            <p><strong>Bahasa:</strong> Indonesia</p>
+                            <p><strong>Metode:</strong> HTTP Scraping</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <h2 class="text-2xl font-semibold">Komikcast</h2>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                        </div>
+                        <div class="space-y-2 text-gray-700">
+                            <p><strong>Base URL:</strong> <a href="https://v1.komikcast.fit" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">v1.komikcast.fit</a></p>
+                            <p><strong>Domain:</strong> v1.komikcast.fit</p>
+                            <p><strong>Bahasa:</strong> Indonesia</p>
+                            <p><strong>Metode:</strong> Browser Rendering (Playwright)</p>
+                            <p class="text-sm text-gray-500">*Memerlukan headless browser karena konten di-render dengan JavaScript</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-12">
+                    <h2 class="text-2xl font-semibold mb-4">Cara Menggunakan</h2>
+                    <ol class="list-decimal list-inside space-y-3 text-gray-700">
+                        <li>Kunjungi salah satu website yang didukung di atas</li>
+                        <li>Cari komik yang ingin Anda baca</li>
+                        <li>Salin URL halaman komik tersebut</li>
+                        <li>Kembali ke Cuma Baca dan tempel URL ke formulir</li>
+                        <li>Klik "Kirim" dan nikmati membaca tanpa gangguan!</li>
+                    </ol>
+                </section>
+
+                <section class="mb-12">
+                    <h2 class="text-2xl font-semibold mb-4">Catatan Penting</h2>
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 text-gray-700 text-sm leading-relaxed">
+                        <p class="mb-2">
+                            <strong>Ketersediaan:</strong> Website yang didukung dapat berubah sewaktu-waktu tergantung ketersediaan dan kebijakan dari website sumber.
+                        </p>
+                        <p>
+                            <strong>Request Website Baru:</strong> Jika Anda ingin kami menambahkan website lain, silakan hubungi kami atau buat issue di repository GitHub kami.
+                        </p>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </body>
+</html>
