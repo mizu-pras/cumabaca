@@ -1,10 +1,12 @@
 const { websites } = require('../config/websites');
 const KomikuScraper = require('./komiku');
 const KomikcastScraper = require('./komikcast');
+const SektedoujinScraper = require('./sektedoujin');
 
 const scrapers = {
     komiku: new KomikuScraper(),
-    komikcast: new KomikcastScraper()
+    komikcast: new KomikcastScraper(),
+    sektedoujin: new SektedoujinScraper()
 };
 
 function getScraperForDomain(domain) {

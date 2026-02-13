@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit) and provides a clean, distraction-free reading experience. It's a full-stack JavaScript application with no frontend framework dependencies. The site uses a multi-page architecture with separate pages for the comic reader (`/`) and about page (`/about.html`).
+Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit, sektedoujin.cc) and provides a clean, distraction-free reading experience. It's a full-stack JavaScript application with no frontend framework dependencies. The site uses a multi-page architecture with separate pages for the comic reader (`/`) and about page (`/about.html`).
 
 ## Development Commands
 
@@ -142,9 +142,41 @@ The backend is a standard Express.js application with modular scraper architectu
 - `scrapers/index.js` - Scraper registry/factory for domain-based scraper selection
 - `scrapers/komiku.js` - Komiku scraper implementation
 - `scrapers/komikcast.js` - Komikcast scraper implementation
+- `scrapers/sektedoujin.js` - Sektedoujin scraper implementation
 - `config/websites.js` - Website configuration (domains, base URLs, rendering mode)
-- `utils/index.js` - Scraping utilities (axios, cheerio, playwright)
+- `utils/index.js` - Scraping utilities (axios, cheerio, puppeteer, playwright)
 - `utils/cache.js` - Cache middleware using `memory-cache`
+- `utils/test-scraper.js` - Scraper testing utilities for validating website scraping
+
+### Scraper Testing
+
+Use `utils/test-scraper.js` to test if a website can be scraped:
+
+```javascript
+const { testScraper, printTestResult, canScrape } = require('./utils/test-scraper');
+
+// Full test with detailed output
+const result = await testScraper('https://komiku.org/manga/one-piece', {
+    verbose: true,      // Show detailed logs
+    testChapter: true   // Also test first chapter data extraction
+});
+printTestResult(result);
+
+// Quick check
+const works = await canScrape('https://komiku.org/manga/one-piece');
+```
+
+**Test results include:**
+- URL validation check
+- Scraper availability (domain matching)
+- Connectivity (can fetch HTML)
+- Chapter extraction (count and data)
+- Optional: First chapter data/images extraction
+
+**Use this function when:**
+- Adding a new scraper - verify it works before deployment
+- Troubleshooting - diagnose why a website isn't working
+- Monitoring - periodically check if websites are still accessible
 
 **Caching:** Routes use in-memory caching (1 day TTL) via `memory-cache` to avoid redundant scraping requests.
 
@@ -191,14 +223,15 @@ The frontend uses vanilla JavaScript with a singleton pattern. The site is a **m
 Scraping utilities in `utils/index.js`:
 
 - `fetchData(url)` - Fetches HTML using axios and loads into Cheerio
-- `fetchDataWithBrowser(url)` - Fetches HTML using Playwright headless browser for JS-rendered content
+- `fetchDataWithBrowser(url)` - Fetches HTML using Puppeteer headless browser for JS-rendered content
 - `validateUrl(url)` - Validates URL and extracts domain origin
 - `getDomain(url)` - Extracts origin from URL
 - `loadCheerio(html)` - Cleans whitespace and loads HTML into Cheerio
 
 **Supported websites:**
 - **komiku.org** (previously komiku.id) - Uses simple HTTP scraping
-- **v1.komikcast.fit** - Requires headless browser (Playwright) + image proxy
+- **v1.komikcast.fit** - Requires headless browser (Puppeteer) + image proxy
+- **sektedoujin.cc** - Requires headless browser (Puppeteer) for lazy-loaded images
 
 ## Important Context
 
@@ -208,5 +241,6 @@ Scraping utilities in `utils/index.js`:
 4. **Deployment** - Supports Docker with multi-stage build (development + production stages)
 5. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`
 6. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
-7. **Headless browser** - Puppeteer with Chromium is used for sites requiring JavaScript rendering
+7. **Headless browser** - Playwright and Puppeteer with Chromium are used for sites requiring JavaScript rendering
 8. **Hot-reload** - Docker development mode supports instant reload for JS/CSS changes
+9. **NO Cloudflare-protected websites** - Do NOT add websites protected by Cloudflare. Headless browsers are easily detected by Cloudflare and the content cannot be scraped. This includes websites that show "Just a moment..." or "Performing security verification..." pages.

@@ -13,11 +13,11 @@ module.exports = {
             lang: 'id',
             useBrowser: true,
         },
-        toongod: {
-            name: 'Toongod',
-            domains: ['toongod.org'],
-            baseUrl: 'https://toongod.org',
-            lang: 'en',
+        sektedoujin: {
+            name: 'Sektedoujin',
+            domains: ['sektedoujin.cc'],
+            baseUrl: 'https://sektedoujin.cc',
+            lang: 'id',
             useBrowser: true,
         },
     },

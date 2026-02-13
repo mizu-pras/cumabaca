@@ -40,7 +40,7 @@ const validateUrl = (url) => {
 };
 
 // Fetches data from URL using headless browser for JS-rendered content
-const fetchDataWithBrowser = async (url) => {
+const fetchDataWithBrowser = async (url, config = {}) => {
     let browser = null;
     try {
         browser = await puppeteer.launch({
@@ -50,13 +50,15 @@ const fetchDataWithBrowser = async (url) => {
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-gpu'
-            ]
+                '--disable-gpu',
+            ],
         });
         const page = await browser.newPage();
 
         // Navigate and wait for network to be idle
-        await page.goto(url, { waitUntil: 'networkidle0' });
+        await page.goto(url, {
+            waitUntil: config.waitUntil ? config.waitUntil : 'networkidle0',
+        });
 
         // Get the rendered HTML
         const html = await page.content();
