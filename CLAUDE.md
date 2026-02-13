@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from komiku.org and provides a clean, distraction-free reading experience. It's a full-stack JavaScript application with no frontend framework dependencies.
+Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from komiku.org and provides a clean, distraction-free reading experience. It's a full-stack JavaScript application with no frontend framework dependencies. The site uses a multi-page architecture with separate pages for the comic reader (`/`) and about page (`/about.html`).
 
 ## Development Commands
 
@@ -41,11 +41,12 @@ The backend is a standard Express.js application with two main API endpoints:
 
 ### Frontend (Vanilla JavaScript)
 
-The frontend is a single-page application using vanilla JavaScript with a singleton pattern:
+The frontend uses vanilla JavaScript with a singleton pattern. The site is a **multi-page website** (not SPA):
 
 - **`public/assets/main.js`** - MainApp class handles data fetching, state management, and chapter navigation
 - **`public/assets/ui.js`** - MainUI class handles DOM manipulation and user interactions
-- **`public/index.html`** - Single HTML entry point
+- **`public/index.html`** - Main page (comic reader)
+- **`public/about.html`** - About page (static HTML, no JS dependencies)
 - **`public/input.css`** - Tailwind CSS v4 imports (compiled to `public/output.css`)
 
 **UI Components:**

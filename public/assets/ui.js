@@ -75,8 +75,25 @@ class MainUI {
             Tempat paling efisien untuk membaca komik
         `;
 
+        // Navigation
+        const nav = document.createElement('nav');
+        nav.className = 'flex gap-6 mt-4';
+
+        const homeLink = document.createElement('a');
+        homeLink.href = '/';
+        homeLink.className = 'text-gray-800 border-b-2 border-gray-800';
+        homeLink.textContent = 'Home';
+
+        const aboutLink = document.createElement('a');
+        aboutLink.href = '/about.html';
+        aboutLink.className = 'text-gray-600 hover:text-gray-800 transition-colors';
+        aboutLink.textContent = 'Tentang Kami';
+
+        nav.append(homeLink, aboutLink);
+
         header.append(appTitle);
         header.append(appDesc);
+        header.append(nav);
 
         this.rootElement.append(header);
     }
