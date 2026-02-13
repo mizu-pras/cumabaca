@@ -68,10 +68,7 @@ class MainApp {
 
         this.komik = LocalConfig.getData('komik', CONFIG_DEFAULT['komik']);
 
-        this.getChapterList(() => {
-            MainUI.instance.showUI();
-        });
-
+        // Don't auto-fetch chapters on first load - user must click "Kirim" manually
         MainUI.instance.init();
 
         // add event listener
@@ -89,9 +86,10 @@ class MainApp {
         this.chapterTitle = '';
 
         this.komik = LocalConfig.setData('komik', url);
+        MainUI.instance.render.innerHTML = '';
 
         this.getChapterList(() => {
-            MainUI.instance.chapterOptionBuilder();
+            MainUI.instance.showUI();
         });
     }
 

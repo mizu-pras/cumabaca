@@ -1,5 +1,6 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
+const { chromium } = require('playwright');
 
 // Validates URL and returns its origin
 const getDomain = (url) => {
@@ -38,9 +39,31 @@ const validateUrl = (url) => {
     return domain;
 };
 
+// Fetches data from URL using headless browser for JS-rendered content
+const fetchDataWithBrowser = async (url) => {
+    let browser = null;
+    try {
+        browser = await chromium.launch();
+        const page = await browser.newPage();
+
+        // Navigate and wait for network to be idle
+        await page.goto(url, { waitUntil: 'networkidle' });
+
+        // Get the rendered HTML
+        const html = await page.content();
+
+        return loadCheerio(html);
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
+    }
+};
+
 module.exports = {
     getDomain,
     loadCheerio,
     fetchData,
+    fetchDataWithBrowser,
     validateUrl,
 };
