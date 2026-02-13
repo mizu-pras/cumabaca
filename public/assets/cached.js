@@ -142,7 +142,8 @@ class CachedComicsApp {
         // Add NSFW badge if mode is active
         if (this.isSecretMode) {
             const nsfwBadge = document.createElement('span');
-            nsfwBadge.className = 'text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium';
+            nsfwBadge.className =
+                'text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium';
             nsfwBadge.textContent = 'NSFW';
             appTitle.appendChild(nsfwBadge);
         }
@@ -153,17 +154,20 @@ class CachedComicsApp {
 
         const homeLink = document.createElement('a');
         homeLink.href = '/';
-        homeLink.className = 'text-gray-600 hover:text-gray-800 transition-colors';
+        homeLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
         homeLink.textContent = 'Home';
 
         const aboutLink = document.createElement('a');
         aboutLink.href = '/about.html';
-        aboutLink.className = 'text-gray-600 hover:text-gray-800 transition-colors';
+        aboutLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
         aboutLink.textContent = 'Tentang Kami';
 
         const websitesLink = document.createElement('a');
         websitesLink.href = '/websites.html';
-        websitesLink.className = 'text-gray-600 hover:text-gray-800 transition-colors';
+        websitesLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
         websitesLink.textContent = 'Website yang Didukung';
 
         const cachedLink = document.createElement('a');
@@ -191,7 +195,8 @@ class CachedComicsApp {
         // Page description
         const pageDesc = document.createElement('p');
         pageDesc.className = 'text-gray-600 mb-8';
-        pageDesc.textContent = 'Daftar komik yang sudah di-scrape dan tersimpan di cache.';
+        pageDesc.textContent =
+            'Daftar komik yang sudah di-scrape dan tersimpan di cache.';
 
         // Content container
         const contentContainer = document.createElement('div');
@@ -210,7 +215,9 @@ class CachedComicsApp {
 
         try {
             // Backend returns all comics; frontend filters based on localStorage
-            const response = await fetch(`${CONFIG_DEFAULT.apiBaseUrl}/cached-comics`);
+            const response = await fetch(
+                `${CONFIG_DEFAULT.apiBaseUrl}/cached-comics`,
+            );
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -245,10 +252,12 @@ class CachedComicsApp {
 
     renderLoading() {
         const loadingContainer = document.createElement('div');
-        loadingContainer.className = 'flex flex-col items-center justify-center py-16';
+        loadingContainer.className =
+            'flex flex-col items-center justify-center py-16';
 
         const spinner = document.createElement('div');
-        spinner.className = 'animate-spin w-12 h-12 border-4 border-gray-300 border-t-gray-800 rounded-full mb-4';
+        spinner.className =
+            'animate-spin w-12 h-12 border-4 border-gray-300 border-t-gray-800 rounded-full mb-4';
 
         const loadingText = document.createElement('p');
         loadingText.className = 'text-gray-600';
@@ -260,7 +269,8 @@ class CachedComicsApp {
 
     renderError() {
         const errorContainer = document.createElement('div');
-        errorContainer.className = 'bg-red-50 border-l-4 border-red-400 p-6 mb-6';
+        errorContainer.className =
+            'bg-red-50 border-l-4 border-red-400 p-6 mb-6';
 
         const errorTitle = document.createElement('h2');
         errorTitle.className = 'text-xl font-semibold text-red-800 mb-2';
@@ -271,7 +281,8 @@ class CachedComicsApp {
         errorMessage.textContent = `Gagal memuat daftar komik ter-cache: ${this.error}`;
 
         const retryButton = document.createElement('button');
-        retryButton.className = 'mt-4 px-4 py-2 bg-red-800 text-white rounded hover:bg-red-700 transition-colors';
+        retryButton.className =
+            'mt-4 px-4 py-2 bg-red-800 text-white rounded hover:bg-red-700 transition-colors';
         retryButton.textContent = 'Coba Lagi';
         retryButton.addEventListener('click', () => this.fetchCachedComics());
 
@@ -293,7 +304,8 @@ class CachedComicsApp {
 
         const emptyMessage = document.createElement('p');
         emptyMessage.className = 'text-gray-600';
-        emptyMessage.textContent = 'Baca komik pertama Anda untuk melihatnya muncul di sini.';
+        emptyMessage.textContent =
+            'Baca komik pertama Anda untuk melihatnya muncul di sini.';
 
         emptyContainer.append(emptyIcon, emptyTitle, emptyMessage);
         this.contentContainer.append(emptyContainer);
@@ -312,16 +324,16 @@ class CachedComicsApp {
         // Show filter notice if some comics are hidden
         const hiddenCount = this.comics.length - visibleComics.length;
         if (hiddenCount > 0) {
-            const filterNotice = document.createElement('div');
-            filterNotice.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-yellow-800';
-            filterNotice.innerHTML = `
-                <p><strong>${hiddenCount} komik NSFW disembunyikan</strong></p>
-                <p class="mt-1">
-                    <a href="/secret.html" class="underline hover:text-yellow-900">Buka Pengaturan</a>
-                    untuk melihat konten NSFW.
-                </p>
-            `;
-            this.contentContainer.append(filterNotice);
+            // const filterNotice = document.createElement('div');
+            // filterNotice.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-yellow-800';
+            // filterNotice.innerHTML = `
+            //     <p><strong>${hiddenCount} komik NSFW disembunyikan</strong></p>
+            //     <p class="mt-1">
+            //         <a href="/secret.html" class="underline hover:text-yellow-900">Buka Pengaturan</a>
+            //         untuk melihat konten NSFW.
+            //     </p>
+            // `;
+            // this.contentContainer.append(filterNotice);
         }
 
         visibleComics.forEach((comic) => {
@@ -334,7 +346,8 @@ class CachedComicsApp {
 
     createComicCard(comic) {
         const card = document.createElement('div');
-        card.className = 'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow flex flex-col';
+        card.className =
+            'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow flex flex-col';
 
         // Header with domain badge
         const cardHeader = document.createElement('div');
@@ -349,7 +362,8 @@ class CachedComicsApp {
 
         // Comic title
         const title = document.createElement('h3');
-        title.className = 'text-lg font-semibold text-gray-900 mb-2 line-clamp-2';
+        title.className =
+            'text-lg font-semibold text-gray-900 mb-2 line-clamp-2';
         title.textContent = comic.title;
 
         // Comic URL
@@ -370,7 +384,8 @@ class CachedComicsApp {
         // Read button
         const readButton = document.createElement('a');
         readButton.href = this.buildReadUrl(comic);
-        readButton.className = 'w-full inline-block text-center px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors';
+        readButton.className =
+            'w-full inline-block text-center px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors';
         readButton.textContent = 'Baca';
 
         card.append(cardHeader, title, url, timestamp, spacer, readButton);
