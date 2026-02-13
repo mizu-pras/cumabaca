@@ -22,6 +22,49 @@ npm run dev
 npm start
 ```
 
+## Docker Deployment
+
+The project includes Docker support for containerized deployment.
+
+### Docker Commands
+
+```bash
+# Build the image
+docker build -t cumabaca .
+
+# Run the container
+docker run -d -p 3100:3100 --name cumabaca cumabaca
+
+# Using Docker Compose (recommended)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the container
+docker-compose down
+```
+
+### Docker Configuration
+
+**Key files:**
+
+- `Dockerfile` - Multi-stage build using Playwright base image (includes Chromium for headless browser scraping)
+- `docker-compose.yml` - Service configuration with resource limits and volume mounts
+- `.dockerignore` - Excludes unnecessary files from build context
+
+**Container details:**
+
+- **Base image:** `mcr.microsoft.com/playwright:v1.58.2-jammy`
+- **Port:** 3100 (exposed)
+- **User:** Runs as non-root user `appuser` (UID 1001)
+- **Health check:** HTTP GET to `/` every 30s (10s timeout, 40s start period)
+- **Resource limits:** 1 CPU, 1GB RAM (adjustable in `docker-compose.yml`)
+
+**Volumes:**
+
+- `./logs:/app/logs` - Persistent logs directory
+
 ## Architecture
 
 ### Backend (Express.js)
@@ -102,6 +145,7 @@ Scraping utilities in `utils/index.js`:
 1. **No test suite** - The project currently has no tests
 2. **No authentication** - The app is completely open, no user system
 3. **Environment** - Port is configurable via environment variable (defaults to Express standard)
+4. **Deployment** - Supports Docker with multi-stage build using Playwright base image
 4. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`
 5. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
 6. **Headless browser** - Playwright (chromium) is used for sites requiring JavaScript rendering
