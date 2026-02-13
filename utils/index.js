@@ -20,7 +20,7 @@ const loadCheerio = (html) => {
 };
 
 // Fetches data from URL and loads it into Cheerio
-const fetchData = async (url) => {
+const fetchData = async (url, _config) => {
     const response = await axios(url);
     if (!response.data) {
         throw new Error('Something went wrong!');
@@ -40,7 +40,7 @@ const validateUrl = (url) => {
 };
 
 // Fetches data from URL using headless browser for JS-rendered content
-const fetchDataWithBrowser = async (url, config = {}) => {
+const fetchDataWithBrowser = async (url, config) => {
     let browser = null;
     try {
         browser = await puppeteer.launch({

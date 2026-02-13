@@ -14,7 +14,10 @@ const cacheMiddleware = (duration) => {
         // Cache miss - intercept res.send to store response
         res.sendResponse = res.send;
         res.send = async (body) => {
-            await put(key, body, duration);
+            // Only cache successful responses (20X status codes)
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+                await put(key, body, duration);
+            }
             res.sendResponse(body);
         };
         next();

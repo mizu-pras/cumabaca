@@ -69,25 +69,31 @@ class MainApp {
     }
 
     /**
-     * Check if secret mode is active (from URL or localStorage)
+     * Check if NSFW mode is active (localStorage only)
+     * DEFAULT: Returns FALSE for new users (NSFW disabled by default)
      * @returns {boolean}
      */
     static isSecretMode() {
-        // Check URL first
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('mode') === 'secret') {
+        // Migrate old secretMode key to new nsfwEnabled key
+        if (localStorage.getItem('secretMode') === 'true') {
+            localStorage.setItem('nsfwEnabled', 'true');
+            localStorage.removeItem('secretMode');
             return true;
         }
-        // Fall back to localStorage
-        return LocalConfig.getData('secretMode') === 'true';
+        // Default to FALSE - only true if explicitly set to 'true'
+        return localStorage.getItem('nsfwEnabled') === 'true';
     }
 
     init() {
         console.log('main app init');
 
-        // Persist secret mode to localStorage if active
-        if (MainApp.isSecretMode()) {
-            LocalConfig.setData('secretMode', 'true');
+        // Migrate from URL parameter to localStorage (if user visits old ?mode=secret URL)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'secret' && !localStorage.getItem('nsfwEnabled')) {
+            localStorage.setItem('nsfwEnabled', 'true');
+            // Clean URL by removing mode parameter
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, '', cleanUrl);
         }
 
         this.komik = LocalConfig.getData('komik', CONFIG_DEFAULT['komik']);

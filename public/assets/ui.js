@@ -66,8 +66,16 @@ class MainUI {
         header.className = 'px-4 py-4';
 
         const appTitle = document.createElement('h1');
-        appTitle.className = 'text-4xl m-0';
+        appTitle.className = 'text-4xl m-0 flex items-center gap-3';
         appTitle.textContent = CONFIG_DEFAULT.appName;
+
+        // Add NSFW badge if mode is active
+        if (MainApp.isSecretMode()) {
+            const nsfwBadge = document.createElement('span');
+            nsfwBadge.className = 'text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium';
+            nsfwBadge.textContent = 'NSFW';
+            appTitle.appendChild(nsfwBadge);
+        }
 
         // const appDesc = document.createElement('h3');
         // appDesc.className = 'font-normal m-0';
@@ -79,28 +87,30 @@ class MainUI {
         const nav = document.createElement('nav');
         nav.className = 'flex gap-6 mt-4';
 
-        // Check if we should add mode parameter
-        const isSecretMode = MainApp.isSecretMode();
-        const modeParam = isSecretMode ? '?mode=secret' : '';
-
         const homeLink = document.createElement('a');
-        homeLink.href = '/' + modeParam;
+        homeLink.href = '/';
         homeLink.className = 'text-gray-800 border-b-2 border-gray-800';
         homeLink.textContent = 'Home';
 
         const aboutLink = document.createElement('a');
-        aboutLink.href = '/about.html' + modeParam;
+        aboutLink.href = '/about.html';
         aboutLink.className =
             'text-gray-600 hover:text-gray-800 transition-colors';
         aboutLink.textContent = 'Tentang Kami';
 
         const websitesLink = document.createElement('a');
-        websitesLink.href = '/websites.html' + modeParam;
+        websitesLink.href = '/websites.html';
         websitesLink.className =
             'text-gray-600 hover:text-gray-800 transition-colors';
         websitesLink.textContent = 'Website yang Didukung';
 
-        nav.append(homeLink, aboutLink, websitesLink);
+        const cachedLink = document.createElement('a');
+        cachedLink.href = '/cached.html';
+        cachedLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
+        cachedLink.textContent = 'Ter-Cache';
+
+        nav.append(homeLink, aboutLink, websitesLink, cachedLink);
 
         header.append(appTitle);
         // header.append(appDesc);

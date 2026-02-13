@@ -20,10 +20,10 @@
     <body class="overflow-x-hidden">
         <div id="root">
             <header class="px-4 py-4">
-                <h1 class="text-4xl m-0">Cuma Baca</h1>
-                <h3 class="font-normal m-0">
+                <h1 class="text-4xl m-0 flex items-center gap-3">Cuma Baca</h1>
+                <!--<h3 class="font-normal m-0">
                     Tempat paling efisien untuk membaca komik
-                </h3>
+                </h3>-->
 
                 <nav class="flex gap-6 mt-4">
                     <a
@@ -41,6 +41,11 @@
                         class="text-gray-800 border-b-2 border-gray-800"
                         >Website yang Didukung</a
                     >
+                    <a
+                        href="/cached.html"
+                        class="text-gray-600 hover:text-gray-800 transition-colors"
+                        >Ter-Cache</a
+                    >
                 </nav>
             </header>
 
@@ -52,81 +57,170 @@
                 </p>
 
                 <section class="mb-12">
-                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow">
+                    <div
+                        class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow"
+                    >
                         <div class="flex items-start justify-between mb-4">
                             <h2 class="text-2xl font-semibold">Komiku</h2>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                            <span
+                                class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                                >Aktif</span
+                            >
                         </div>
                         <div class="space-y-2 text-gray-700">
-                            <p><strong>Base URL:</strong> <a href="https://komiku.org" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">komiku.org</a></p>
-                            <p><strong>Domain:</strong> komiku.org, komiku.id</p>
+                            <p>
+                                <strong>Base URL:</strong>
+                                <a
+                                    href="https://komiku.org"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-blue-600 hover:underline"
+                                    >komiku.org</a
+                                >
+                            </p>
+                            <p>
+                                <strong>Domain:</strong> komiku.org, komiku.id
+                            </p>
                             <p><strong>Bahasa:</strong> Indonesia</p>
                             <p><strong>Metode:</strong> HTTP Scraping</p>
                         </div>
                     </div>
 
-                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow">
+                    <div
+                        class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow"
+                    >
                         <div class="flex items-start justify-between mb-4">
                             <h2 class="text-2xl font-semibold">Komikcast</h2>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                            <span
+                                class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                                >Aktif</span
+                            >
                         </div>
                         <div class="space-y-2 text-gray-700">
-                            <p><strong>Base URL:</strong> <a href="https://v1.komikcast.fit" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">v1.komikcast.fit</a></p>
+                            <p>
+                                <strong>Base URL:</strong>
+                                <a
+                                    href="https://v1.komikcast.fit"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-blue-600 hover:underline"
+                                    >v1.komikcast.fit</a
+                                >
+                            </p>
                             <p><strong>Domain:</strong> v1.komikcast.fit</p>
                             <p><strong>Bahasa:</strong> Indonesia</p>
-                            <p><strong>Metode:</strong> Browser Rendering (Playwright)</p>
-                            <p class="text-sm text-gray-500">*Memerlukan headless browser karena konten di-render dengan JavaScript</p>
+                            <p>
+                                <strong>Metode:</strong> Browser Rendering
+                                (Playwright)
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                *Memerlukan headless browser karena konten
+                                di-render dengan JavaScript
+                            </p>
                         </div>
                     </div>
 
-                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow" data-nsfw="true">
+                    <div
+                        class="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow"
+                        data-nsfw="true"
+                    >
                         <div class="flex items-start justify-between mb-4">
                             <h2 class="text-2xl font-semibold">Sektedoujin</h2>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>
+                            <span
+                                class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                                >Aktif</span
+                            >
                         </div>
                         <div class="space-y-2 text-gray-700">
-                            <p><strong>Base URL:</strong> <a href="https://sektedoujin.cc" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">sektedoujin.cc</a></p>
+                            <p>
+                                <strong>Base URL:</strong>
+                                <a
+                                    href="https://sektedoujin.cc"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-blue-600 hover:underline"
+                                    >sektedoujin.cc</a
+                                >
+                            </p>
                             <p><strong>Domain:</strong> sektedoujin.cc</p>
                             <p><strong>Bahasa:</strong> Indonesia</p>
-                            <p><strong>Metode:</strong> Browser Rendering (Puppeteer)</p>
-                            <p class="text-sm text-gray-500">*Memerlukan headless browser karena konten di-render dengan JavaScript</p>
+                            <p>
+                                <strong>Metode:</strong> Browser Rendering
+                                (Puppeteer)
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                *Memerlukan headless browser karena konten
+                                di-render dengan JavaScript
+                            </p>
                         </div>
                     </div>
                 </section>
 
                 <section class="mb-12">
-                    <h2 class="text-2xl font-semibold mb-4">Cara Menggunakan</h2>
-                    <ol class="list-decimal list-inside space-y-3 text-gray-700">
-                        <li>Kunjungi salah satu website yang didukung di atas</li>
+                    <h2 class="text-2xl font-semibold mb-4">
+                        Cara Menggunakan
+                    </h2>
+                    <ol
+                        class="list-decimal list-inside space-y-3 text-gray-700"
+                    >
+                        <li>
+                            Kunjungi salah satu website yang didukung di atas
+                        </li>
                         <li>Cari komik yang ingin Anda baca</li>
                         <li>Salin URL halaman komik tersebut</li>
                         <li>Kembali ke Cuma Baca dan tempel URL ke formulir</li>
-                        <li>Klik "Kirim" dan nikmati membaca tanpa gangguan!</li>
+                        <li>
+                            Klik "Kirim" dan nikmati membaca tanpa gangguan!
+                        </li>
                     </ol>
                 </section>
 
                 <section class="mb-12">
                     <h2 class="text-2xl font-semibold mb-4">Catatan Penting</h2>
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 text-gray-700 text-sm leading-relaxed">
+                    <div
+                        class="bg-blue-50 border-l-4 border-blue-400 p-4 text-gray-700 text-sm leading-relaxed"
+                    >
                         <p class="mb-2">
-                            <strong>Ketersediaan:</strong> Website yang didukung dapat berubah sewaktu-waktu tergantung ketersediaan dan kebijakan dari website sumber.
+                            <strong>Ketersediaan:</strong> Website yang didukung
+                            dapat berubah sewaktu-waktu tergantung ketersediaan
+                            dan kebijakan dari website sumber.
                         </p>
                         <p>
-                            <strong>Request Website Baru:</strong> Jika Anda ingin kami menambahkan website lain, silakan hubungi kami atau buat issue di repository GitHub kami.
+                            <strong>Request Website Baru:</strong> Jika Anda
+                            ingin kami menambahkan website lain, silakan hubungi
+                            kami atau buat issue di repository GitHub kami.
                         </p>
                     </div>
                 </section>
             </main>
         </div>
         <script>
-            (function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const isSecretMode = urlParams.get('mode') === 'secret';
+            (function () {
+                // Check localStorage for NSFW preference
+                // DEFAULT: NSFW is DISABLED - websites hidden by default for new users
+                const nsfwEnabled =
+                    localStorage.getItem('nsfwEnabled') === 'true' ||
+                    localStorage.getItem('secretMode') === 'true';
 
-                if (!isSecretMode) {
-                    document.querySelectorAll('[data-nsfw="true"]').forEach(el => {
-                        el.style.display = 'none';
-                    });
+                // Add NSFW badge to header if active
+                if (nsfwEnabled) {
+                    const appTitle = document.querySelector('header h1');
+                    if (appTitle && !appTitle.querySelector('.nsfw-badge')) {
+                        const nsfwBadge = document.createElement('span');
+                        nsfwBadge.className =
+                            'nsfw-badge text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium';
+                        nsfwBadge.textContent = 'NSFW';
+                        appTitle.appendChild(nsfwBadge);
+                    }
+                }
+
+                // Hide NSFW websites if mode is not enabled
+                if (!nsfwEnabled) {
+                    document
+                        .querySelectorAll('[data-nsfw="true"]')
+                        .forEach((el) => {
+                            el.style.display = 'none';
+                        });
                 }
             })();
         </script>

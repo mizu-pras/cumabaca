@@ -97,6 +97,87 @@ async function clear() {
 }
 
 /**
+ * Get all cached comics from MongoDB
+ * @returns {Promise<Array>} Array of cached comics with metadata
+ */
+async function getCachedComics() {
+    try {
+        const db = getDatabase();
+        const collection = db.collection(CACHE_COLLECTION);
+
+        // Query cache entries for chapter lists (pattern: __express__/komik/chapters?url=)
+        const cursor = collection.find({
+            key: { $regex: /^__express__\/komik\/chapters\?url=/ }
+        });
+
+        const entries = await cursor.toArray();
+
+        // Process entries to extract comic metadata
+        const comicsMap = new Map();
+
+        for (const entry of entries) {
+            try {
+                // Parse URL from cache key
+                // Key format: __express__/komik/chapters?url=<URL>[&mode=secret]
+                const keyMatch = entry.key.match(/^__express__\/komik\/chapters\?url=(.+)$/);
+                if (!keyMatch) continue;
+
+                const rawUrl = decodeURIComponent(keyMatch[1]);
+                // Remove mode parameter for deduplication
+                const cleanUrl = rawUrl.split('&mode=')[0];
+
+                // Parse cached value to get comic title
+                let title = 'Unknown';
+                if (entry.value && entry.value.body) {
+                    const body = typeof entry.value.body === 'string'
+                        ? JSON.parse(entry.value.body)
+                        : entry.value.body;
+
+                    if (body.data && body.data.title) {
+                        title = body.data.title;
+                    }
+                }
+
+                // Extract domain from URL
+                let domain = '';
+                try {
+                    const urlObj = new URL(cleanUrl);
+                    domain = urlObj.hostname;
+                } catch (e) {
+                    domain = 'unknown';
+                }
+
+                // Use the most recent entry (sorted by createdAt later)
+                const existing = comicsMap.get(cleanUrl);
+                if (!existing || new Date(entry.createdAt) > new Date(existing.cachedAt)) {
+                    comicsMap.set(cleanUrl, {
+                        url: cleanUrl,
+                        title,
+                        domain,
+                        cachedAt: entry.createdAt,
+                        expiresAt: entry.expiresAt,
+                        isNsfw: rawUrl.includes('mode=secret')
+                    });
+                }
+            } catch (parseError) {
+                // Skip entries that can't be parsed
+                console.debug('Failed to parse cache entry:', entry.key, parseError.message);
+            }
+        }
+
+        // Convert to array and sort by cachedAt (newest first)
+        const comics = Array.from(comicsMap.values()).sort((a, b) =>
+            new Date(b.cachedAt) - new Date(a.cachedAt)
+        );
+
+        return comics;
+    } catch (error) {
+        console.error('Get cached comics error:', error.message);
+        return [];
+    }
+}
+
+/**
  * Get cache statistics
  * @returns {Promise<Object>} - Cache stats
  */
@@ -144,4 +225,5 @@ module.exports = {
     del,
     clear,
     getStats,
+    getCachedComics,
 };

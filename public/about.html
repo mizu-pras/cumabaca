@@ -20,10 +20,10 @@
     <body class="overflow-x-hidden">
         <div id="root">
             <header class="px-4 py-4">
-                <h1 class="text-4xl m-0">Cuma Baca</h1>
-                <h3 class="font-normal m-0">
+                <h1 class="text-4xl m-0 flex items-center gap-3">Cuma Baca</h1>
+                <!--<h3 class="font-normal m-0">
                     Tempat paling efisien untuk membaca komik
-                </h3>
+                </h3>-->
 
                 <nav class="flex gap-6 mt-4">
                     <a
@@ -40,6 +40,11 @@
                         href="/websites.html"
                         class="text-gray-600 hover:text-gray-800 transition-colors"
                         >Website yang Didukung</a
+                    >
+                    <a
+                        href="/cached.html"
+                        class="text-gray-600 hover:text-gray-800 transition-colors"
+                        >Ter-Cache</a
                     >
                 </nav>
             </header>
@@ -130,5 +135,25 @@
                 </section>
             </main>
         </div>
+        <script>
+            (function () {
+                // Check localStorage for NSFW preference
+                const nsfwEnabled =
+                    localStorage.getItem('nsfwEnabled') === 'true' ||
+                    localStorage.getItem('secretMode') === 'true';
+
+                // Add NSFW badge to header if active
+                if (nsfwEnabled) {
+                    const appTitle = document.querySelector('header h1');
+                    if (appTitle && !appTitle.querySelector('.nsfw-badge')) {
+                        const nsfwBadge = document.createElement('span');
+                        nsfwBadge.className =
+                            'nsfw-badge text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium';
+                        nsfwBadge.textContent = 'NSFW';
+                        appTitle.appendChild(nsfwBadge);
+                    }
+                }
+            })();
+        </script>
     </body>
 </html>

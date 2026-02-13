@@ -7,11 +7,38 @@ const {
 } = require('../utils/index');
 const { cacheMiddleware } = require('../utils/cache');
 const { getScraperForDomain, getWebsiteConfig } = require('../scrapers');
-const { del, clear, getStats } = require('../utils/mongodb-cache');
+const {
+    del,
+    clear,
+    getStats,
+    getCachedComics,
+} = require('../utils/mongodb-cache');
 
 const ONE_DAY = 3600 * 24;
 
 const router = express.Router();
+
+/**
+ * FRONTEND/BACKEND CONTRACT FOR NSFW/SECRET MODE
+ * =================================================
+ *
+ * **Frontend Behavior:**
+ * - NSFW preference is stored in localStorage as 'nsfwEnabled' ('true' or 'false')
+ * - Frontend sends `mode=secret` query parameter to API when localStorage.nsfwEnabled === 'true'
+ * - Navigation URLs are clean (no ?mode=secret parameter)
+ * - Frontend filters NSFW content from cached-comics list based on localStorage
+ *
+ * **Backend Behavior:**
+ * - API receives `mode=secret` parameter from frontend based on localStorage state
+ * - Backend validates: if (mode !== 'secret' && config.nsfw) returns 403
+ * - Backend is authoritative for security - frontend cannot bypass this check
+ * - No security reduction - NSFW content is still protected server-side
+ *
+ * **Migration:**
+ * - Old URL-based system: ?mode=secret parameter polluted browser history
+ * - New localStorage system: Setting persists across sessions without URL pollution
+ * - Old 'secretMode' localStorage key migrates to new 'nsfwEnabled' key
+ */
 
 router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
     const { url, mode } = req.query;
@@ -31,10 +58,14 @@ router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
 
         // Use browser if the website requires JavaScript rendering
         const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
-        const $ = await fetchFn(url);
+        const $ = await fetchFn(url, config);
 
         const scraper = getScraperForDomain(domain);
         const data = scraper.getChapters($, domain);
+
+        if (data.length <= 0) {
+            res.status(404).json({ url, data });
+        }
 
         res.json({
             url,
@@ -63,7 +94,7 @@ router.get('/data', cacheMiddleware(ONE_DAY), async (req, res, next) => {
 
         // Use browser if the website requires JavaScript rendering
         const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
-        const $ = await fetchFn(url);
+        const $ = await fetchFn(url, config);
 
         const scraper = getScraperForDomain(domain);
         const data = scraper.getChapterData($, url);
@@ -123,6 +154,19 @@ router.get('/cache/stats', async (req, res, next) => {
     try {
         const stats = await getStats();
         res.json(stats);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /komik/cached-comics
+ * Returns array of cached comics with: { url, title, domain, cachedAt, expiresAt, isNsfw }
+ */
+router.get('/cached-comics', async (req, res, next) => {
+    try {
+        const comics = await getCachedComics();
+        res.json(comics);
     } catch (error) {
         next(error);
     }

@@ -12,6 +12,7 @@ module.exports = {
             baseUrl: 'https://v1.komikcast.fit',
             lang: 'id',
             useBrowser: true,
+            waitUntil: 'networkidle0',
         },
         sektedoujin: {
             name: 'Sektedoujin',
