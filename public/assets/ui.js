@@ -7,6 +7,15 @@ class MainUI {
     /** @type {HTMLSelectElement} */
     chapterElement = null;
 
+    /** @type {HTMLButtonElement | null} */
+    backToTopButton = null;
+
+    /** @type {HTMLDivElement | null} */
+    floatingChapterSelector = null;
+
+    /** @type {HTMLButtonElement | null} */
+    chapterTriggerButton = null;
+
     static _instance;
 
     static get instance() {
@@ -25,6 +34,9 @@ class MainUI {
     init() {
         this.generateHeaderApp();
         this.generateKomikForm();
+        this.backToTopButton = this.generateBackToTopButton();
+        this.chapterTriggerButton = this.generateChapterTrigger();
+        this.floatingChapterSelector = this.generateFloatingChapterSelector();
 
         // event listener
         this.formKomik.addEventListener('submit', this.handleKomikFormSubmit);
@@ -143,9 +155,18 @@ class MainUI {
             options.push(option);
         });
 
+        // Update main select
         if (this.chapterElement) {
-            (this, (this.chapterElement.innerHTML = ''));
+            this.chapterElement.innerHTML = '';
             this.chapterElement.append(...options);
+        }
+
+        // Update floating select
+        const floatingSelect = document.querySelector('[data-floating-chapter-select]');
+        if (floatingSelect) {
+            floatingSelect.innerHTML = '';
+            const clonedOptions = options.map((opt) => opt.cloneNode(true));
+            floatingSelect.append(...clonedOptions);
         }
     }
 
@@ -289,6 +310,128 @@ class MainUI {
     updateSelectedChapter(value) {
         if (this.chapterElement) {
             this.chapterElement.value = value;
+        }
+        const floatingSelect = document.querySelector('[data-floating-chapter-select]');
+        if (floatingSelect) {
+            floatingSelect.value = value;
+        }
+    }
+
+    generateBackToTopButton() {
+        const button = document.createElement('button');
+        button.className = 'fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gray-800 text-white opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 flex items-center justify-center text-xl';
+        button.innerHTML = '↑';
+        button.setAttribute('aria-label', 'Back to top');
+        button.dataset.backToTop = '';
+
+        button.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        this.rootElement.append(button);
+        return button;
+    }
+
+    handleScrollForBackToTop() {
+        const backToTopBtn = document.querySelector('[data-back-to-top]');
+        if (!backToTopBtn) return;
+
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+            backToTopBtn.classList.add('opacity-100');
+            this.showChapterTrigger();
+        } else {
+            backToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+            backToTopBtn.classList.remove('opacity-100');
+        }
+    }
+
+    generateChapterTrigger() {
+        const trigger = document.createElement('button');
+        trigger.className = 'fixed top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-700 text-sm';
+        trigger.innerHTML = '☰ Chapters';
+        trigger.setAttribute('aria-label', 'Show chapter selector');
+        trigger.dataset.chapterTrigger = '';
+
+        trigger.addEventListener('click', () => {
+            this.toggleChapterSelector();
+        });
+
+        this.rootElement.append(trigger);
+        return trigger;
+    }
+
+    generateFloatingChapterSelector() {
+        const selector = document.createElement('div');
+        selector.className = 'fixed top-0 left-0 right-0 bg-white border-b border-gray-300 px-4 py-3 flex items-center gap-4 transform -translate-y-full transition-transform duration-300 z-50';
+        selector.dataset.floatingSelector = '';
+
+        // Prev button
+        const prevButton = document.createElement('button');
+        prevButton.className = 'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
+        prevButton.textContent = '← Prev';
+
+        // Chapter dropdown
+        const chapterSelect = document.createElement('select');
+        chapterSelect.className = 'px-4 py-2 border-b border-gray-300 flex-1 min-w-0';
+        chapterSelect.dataset.floatingChapterSelect = '';
+
+        // Next button
+        const nextButton = document.createElement('button');
+        nextButton.className = 'px-3 py-2 border-b border-gray-300 whitespace-nowrap';
+        nextButton.textContent = 'Next →';
+
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'px-3 py-1 text-gray-500 hover:text-gray-700 text-xl';
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', () => {
+            this.toggleChapterSelector();
+        });
+
+        selector.append(prevButton, chapterSelect, nextButton, closeButton);
+
+        // Event listeners
+        prevButton.addEventListener('click', () => MainApp.instance.prevChapter());
+        nextButton.addEventListener('click', () => MainApp.instance.nextChapter(true));
+        chapterSelect.addEventListener('change', (e) => {
+            MainApp.instance.changeChapter(e.target.value, true);
+        });
+
+        this.rootElement.append(selector);
+        return selector;
+    }
+
+    toggleChapterSelector() {
+        const selector = document.querySelector('[data-floating-selector]');
+        const trigger = document.querySelector('[data-chapter-trigger]');
+
+        if (!selector || !trigger) return;
+
+        const isHidden = selector.classList.contains('-translate-y-full');
+
+        if (isHidden) {
+            selector.classList.remove('-translate-y-full');
+            selector.classList.add('translate-y-0');
+            trigger.classList.add('opacity-0', 'pointer-events-none');
+        } else {
+            selector.classList.add('-translate-y-full');
+            selector.classList.remove('translate-y-0');
+            trigger.classList.remove('opacity-0', 'pointer-events-none');
+        }
+    }
+
+    showChapterTrigger() {
+        const trigger = document.querySelector('[data-chapter-trigger]');
+        if (trigger) {
+            trigger.classList.remove('opacity-0', 'pointer-events-none');
+            trigger.classList.add('opacity-100');
+        }
+    }
+
+    handleTabKey(e) {
+        if (e.key === 'Tab') {
+            this.showChapterTrigger();
         }
     }
 

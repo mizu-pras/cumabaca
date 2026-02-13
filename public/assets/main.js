@@ -76,6 +76,8 @@ class MainApp {
 
         // add event listener
         document.addEventListener('scroll', this.handleScroll);
+        document.addEventListener('scroll', MainUI.instance.handleScrollForBackToTop.bind(MainUI.instance));
+        document.addEventListener('keydown', MainUI.instance.handleTabKey.bind(MainUI.instance));
     }
 
     resetKomik() {
