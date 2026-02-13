@@ -7,7 +7,7 @@ const getDomain = (url) => {
         const parsedUrl = new URL(url);
         return parsedUrl.origin; // Returns protocol along with hostname
     } catch (error) {
-        console.error("Invalid URL:", url);
+        console.error('Invalid URL:', url);
         return null;
     }
 };
@@ -42,5 +42,5 @@ module.exports = {
     getDomain,
     loadCheerio,
     fetchData,
-    validateUrl
+    validateUrl,
 };
