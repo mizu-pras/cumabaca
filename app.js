@@ -5,6 +5,8 @@ const methodOverride = require('method-override');
 const logger = require('morgan');
 const cors = require('cors');
 
+const { connectToDatabase } = require('./config/database');
+
 const indexRouter = require('./routes/index');
 const komikRouter = require('./routes/komik');
 
@@ -28,4 +30,9 @@ app.use((err, req, res, next) => {
     res.status(500).send({ error: err.message ? err.message : err });
 });
 
-module.exports = app;
+// Initialize database connection
+// This will be called when starting the server in bin/www
+module.exports = {
+    app,
+    connectToDatabase,
+};

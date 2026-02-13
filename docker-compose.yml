@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:7
+    container_name: cumabaca-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: cumabaca
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   web:
     build:
       context: .
@@ -12,6 +28,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3100
+      - MONGODB_URI=mongodb://mongodb:27017/cumabaca
+      - CACHE_TTL=86400
+    depends_on:
+      mongodb:
+        condition: service_healthy
     # Optional: Mount logs directory
     volumes:
       - ./logs:/app/logs
@@ -24,3 +45,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+
+volumes:
+  mongodb_data:

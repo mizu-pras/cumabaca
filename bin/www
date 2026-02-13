@@ -4,30 +4,50 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var { app, connectToDatabase } = require('../app');
 var debug = require('debug')('api:server');
 var http = require('http');
 
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || '3100');
-app.set('port', port);
+// Declare at module level so event handlers can access
+var server;
+var port;
 
 /**
- * Create HTTP server.
+ * Initialize database connection before starting server
  */
 
-var server = http.createServer(app);
+async function startServer() {
+    try {
+        // Connect to MongoDB
+        await connectToDatabase();
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+        /**
+         * Get port from environment and store in Express.
+         */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+        port = normalizePort(process.env.PORT || '3100');
+        app.set('port', port);
+
+        /**
+         * Create HTTP server.
+         */
+
+        server = http.createServer(app);
+
+        /**
+         * Listen on provided port, on all network interfaces.
+         */
+
+        server.listen(port);
+        server.on('error', onError);
+        server.on('listening', onListening);
+    } catch (error) {
+        console.error('Failed to start server:', error.message);
+        process.exit(1);
+    }
+}
+
+startServer();
 
 /**
  * Normalize a port into a number, string, or false.

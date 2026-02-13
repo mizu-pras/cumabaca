@@ -1,23 +1,26 @@
-const cache = require('memory-cache');
+const { get, put } = require('./mongodb-cache');
 
 const cacheMiddleware = (duration) => {
-    return (req, res, next) => {
-        let key = '__express__' + req.originalUrl || req.url;
-        let cachedBody = cache.get(key);
+    return async (req, res, next) => {
+        const key = '__express__' + (req.originalUrl || req.url);
+
+        // Try to get cached value
+        const cachedBody = await get(key);
         if (cachedBody) {
             res.send(cachedBody);
             return;
-        } else {
-            res.sendResponse = res.send;
-            res.send = (body) => {
-                cache.put(key, body, duration * 1000);
-                res.sendResponse(body);
-            };
-            next();
         }
+
+        // Cache miss - intercept res.send to store response
+        res.sendResponse = res.send;
+        res.send = async (body) => {
+            await put(key, body, duration);
+            res.sendResponse(body);
+        };
+        next();
     };
 };
 
 module.exports = {
-    cacheMiddleware
+    cacheMiddleware,
 };

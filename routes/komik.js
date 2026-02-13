@@ -7,6 +7,7 @@ const {
 } = require('../utils/index');
 const { cacheMiddleware } = require('../utils/cache');
 const { getScraperForDomain, getWebsiteConfig } = require('../scrapers');
+const { del, clear, getStats } = require('../utils/mongodb-cache');
 
 const ONE_DAY = 3600 * 24;
 
@@ -108,6 +109,60 @@ router.get('/image', async (req, res, next) => {
         response.data.pipe(res);
     } catch (error) {
         console.error('Image proxy error:', error.message);
+        next(error);
+    }
+});
+
+// === Admin Endpoints ===
+
+/**
+ * GET /komik/cache/stats
+ * View cache statistics
+ */
+router.get('/cache/stats', async (req, res, next) => {
+    try {
+        const stats = await getStats();
+        res.json(stats);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * DELETE /komik/cache?key=<cache-key>
+ * Delete specific cache entry by key
+ * DELETE /komik/cache
+ * Clear all cache entries
+ */
+router.delete('/cache', async (req, res, next) => {
+    try {
+        const { key } = req.query;
+
+        if (key) {
+            // Delete specific cache entry
+            const deleted = await del(key);
+
+            if (deleted) {
+                return res.json({
+                    success: true,
+                    message: `Cache entry deleted: ${key}`,
+                });
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    message: `Cache entry not found: ${key}`,
+                });
+            }
+        } else {
+            // Clear all cache entries
+            const deletedCount = await clear();
+            return res.json({
+                success: true,
+                deletedEntries: deletedCount,
+                message: `Cleared ${deletedCount} cache entries`,
+            });
+        }
+    } catch (error) {
         next(error);
     }
 });

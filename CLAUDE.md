@@ -32,10 +32,10 @@ The project includes Docker support for containerized deployment.
 # Build the image
 docker build -t cumabaca .
 
-# Run the container
-docker run -d -p 3100:3100 --name cumabaca cumabaca
+# Run the container (requires external MongoDB)
+docker run -d -p 3100:3100 --name cumabaca -e MONGODB_URI=mongodb://host.docker.internal:27017/cumabaca cumabaca
 
-# Using Docker Compose (recommended)
+# Using Docker Compose (recommended - includes MongoDB)
 docker-compose up -d
 
 # View logs
@@ -43,6 +43,9 @@ docker-compose logs -f
 
 # Stop the container
 docker-compose down
+
+# Stop and remove all data (including cache)
+docker-compose down -v
 ```
 
 ### Docker Configuration
@@ -62,9 +65,21 @@ docker-compose down
 - **Health check:** HTTP GET to `/` every 30s (10s timeout, 40s start period)
 - **Resource limits:** 1 CPU, 1GB RAM (adjustable in `docker-compose.yml`)
 
+**Services:**
+
+- `web` - Application container (port 3100)
+- `mongodb` - MongoDB 7 for persistent cache (port 27017)
+
 **Volumes:**
 
 - `./logs:/app/logs` - Persistent logs directory
+- `mongodb_data` - MongoDB data directory (production)
+- `mongodb_data_dev` - MongoDB data directory (development)
+
+**Environment variables:**
+
+- `MONGODB_URI` - MongoDB connection string (default: `mongodb://mongodb:27017/cumabaca`)
+- `CACHE_TTL` - Cache TTL in seconds (default: `86400` = 24 hours)
 
 ### Docker Development (Hot-Reload)
 
@@ -92,8 +107,11 @@ podman-compose -f docker-compose.dev.yml up
 # View logs
 podman-compose -f docker-compose.dev.yml logs -f
 
-# Stop dev container
+# Stop dev container (including MongoDB)
 podman-compose -f docker-compose.dev.yml down
+
+# Stop and remove all data (including cache)
+podman-compose -f docker-compose.dev.yml down -v
 ```
 
 **What works with hot-reload:**
@@ -144,8 +162,10 @@ The backend is a standard Express.js application with modular scraper architectu
 - `scrapers/komikcast.js` - Komikcast scraper implementation
 - `scrapers/sektedoujin.js` - Sektedoujin scraper implementation
 - `config/websites.js` - Website configuration (domains, base URLs, rendering mode)
+- `config/database.js` - MongoDB connection management with indexes
 - `utils/index.js` - Scraping utilities (axios, cheerio, puppeteer, playwright)
-- `utils/cache.js` - Cache middleware using `memory-cache`
+- `utils/cache.js` - Cache middleware using MongoDB for persistence
+- `utils/mongodb-cache.js` - MongoDB cache operations (get, put, del, clear, getStats)
 - `utils/test-scraper.js` - Scraper testing utilities for validating website scraping
 
 ### Scraper Testing
@@ -178,7 +198,30 @@ const works = await canScrape('https://komiku.org/manga/one-piece');
 - Troubleshooting - diagnose why a website isn't working
 - Monitoring - periodically check if websites are still accessible
 
-**Caching:** Routes use in-memory caching (1 day TTL) via `memory-cache` to avoid redundant scraping requests.
+**Caching:** Routes use MongoDB for persistent caching (1 day TTL) to avoid redundant scraping requests. Cache persists across server restarts.
+
+**Cache Admin Endpoints:**
+
+```bash
+# View cache statistics
+curl "http://localhost:3100/komik/cache/stats"
+
+# Clear all cache entries
+curl -X DELETE "http://localhost:3100/komik/cache"
+
+# Delete specific cache entry
+curl -X DELETE "http://localhost:3100/komik/cache?key=__express__/komik/chapters?url=https://..."
+```
+
+**Cache Stats Response:**
+```json
+{
+  "totalEntries": 42,
+  "expiredEntries": 0,
+  "totalSize": 125000,
+  "avgSize": 2976
+}
+```
 
 ### Modular Scraper System
 
@@ -249,4 +292,5 @@ Scraping utilities in `utils/index.js`:
 6. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
 7. **Headless browser** - Playwright and Puppeteer with Chromium are used for sites requiring JavaScript rendering
 8. **Hot-reload** - Docker development mode supports instant reload for JS/CSS changes
-9. **NO Cloudflare-protected websites** - Do NOT add websites protected by Cloudflare. Headless browsers are easily detected by Cloudflare and the content cannot be scraped. This includes websites that show "Just a moment..." or "Performing security verification..." pages.
+9. **Persistent cache** - MongoDB provides persistent caching that survives server restarts. First scrape is slow (~5-10s), subsequent requests are instant (<50ms)
+10. **NO Cloudflare-protected websites** - Do NOT add websites protected by Cloudflare. Headless browsers are easily detected by Cloudflare and the content cannot be scraped. This includes websites that show "Just a moment..." or "Performing security verification..." pages.

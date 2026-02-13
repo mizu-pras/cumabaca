@@ -155,9 +155,16 @@ class MainUI {
     }
 
     generateSelectChapter() {
+        // Remove old chapter selector if exists
+        const oldSelector = this.rootElement.querySelector('[data-chapter-selector]');
+        if (oldSelector) {
+            oldSelector.remove();
+        }
+
         const chapterSelectConatiner = document.createElement('div');
         chapterSelectConatiner.className =
             'px-4 py-[0.3em] mt-4 flex items-center gap-2';
+        chapterSelectConatiner.dataset.chapterSelector = '';
 
         const labelChapter = document.createElement('label');
         labelChapter.setAttribute('for', 'url');
@@ -318,9 +325,18 @@ class MainUI {
     }
 
     controllBuilder(isTop = false) {
+        // Remove old navigation controls for this position
+        const position = isTop ? 'top' : 'bottom';
+        const oldControls = this.rootElement.querySelector(`[data-nav-controls][data-nav-position="${position}"]`);
+        if (oldControls) {
+            oldControls.remove();
+        }
+
         const controllContainer = document.createElement('div');
         controllContainer.className =
             'px-4 py-[0.3em] my-4 flex items-center justify-between';
+        controllContainer.dataset.navControls = '';
+        controllContainer.dataset.navPosition = position;
 
         const prevButton = document.createElement('button');
         prevButton.className = 'px-4 py-2 border-none border-b border-gray-300';
