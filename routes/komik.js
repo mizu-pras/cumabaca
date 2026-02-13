@@ -30,6 +30,8 @@ router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
         const domain = validateUrl(url);
         const $ = await fetchData(url);
 
+        console.log('get chapters', $);
+
         const data = [];
 
         const chapterListElement = $('.judulseries');
