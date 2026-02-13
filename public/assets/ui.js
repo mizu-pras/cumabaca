@@ -86,7 +86,8 @@ class MainUI {
 
         const aboutLink = document.createElement('a');
         aboutLink.href = '/about.html';
-        aboutLink.className = 'text-gray-600 hover:text-gray-800 transition-colors';
+        aboutLink.className =
+            'text-gray-600 hover:text-gray-800 transition-colors';
         aboutLink.textContent = 'Tentang Kami';
 
         nav.append(homeLink, aboutLink);
@@ -269,12 +270,27 @@ class MainUI {
         komikData.forEach((data) => {
             const img = new Image();
             img.className = 'w-full max-w-[1000px]';
-            img.src = data;
+            // Use proxy for Komikcast images to bypass CORS/hotlink protection
+            img.src = this.getImageUrl(data);
 
             baca.append(img);
         });
 
         return baca;
+    }
+
+    /**
+     * Get the appropriate image URL - use proxy for Komikcast images
+     * @param {string} url
+     * @returns {string}
+     */
+    getImageUrl(url) {
+        // Check if URL needs proxy (Komikcast images)
+        // if (url.includes('imgkc1') || url.includes('komikcast')) {
+        //     return '/komik/image?url=' + encodeURIComponent(url);
+        //     // return 'https://wsrv.nl/?url=' + encodeURIComponent(url);
+        // }
+        return url;
     }
 
     fetchKomikDataCallback(clear) {
@@ -373,7 +389,10 @@ class MainUI {
         if (this.chapterElement) {
             this.chapterElement.disabled = isLoading;
             this.chapterElement.classList.toggle('opacity-50', isLoading);
-            this.chapterElement.classList.toggle('cursor-not-allowed', isLoading);
+            this.chapterElement.classList.toggle(
+                'cursor-not-allowed',
+                isLoading,
+            );
         }
     }
 

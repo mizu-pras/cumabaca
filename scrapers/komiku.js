@@ -4,7 +4,7 @@ class KomikuScraper {
             chapterList: '.judulseries',
             chapterName: '[itemprop="name"]',
             chapterTitle: '#Judul h1',
-            images: '#Baca_Komik img'
+            images: '#Baca_Komik img',
         };
     }
 
@@ -33,7 +33,7 @@ class KomikuScraper {
         return data;
     }
 
-    getChapterData($) {
+    getChapterData($, _url = undefined) {
         const selectors = this.getSelectors();
         const title = $(selectors.chapterTitle).first().text().trim();
         const images = $(selectors.images);
