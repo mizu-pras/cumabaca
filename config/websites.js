@@ -19,6 +19,7 @@ module.exports = {
             baseUrl: 'https://sektedoujin.cc',
             lang: 'id',
             useBrowser: true,
+            nsfw: true,
         },
     },
 };

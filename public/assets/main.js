@@ -63,8 +63,27 @@ class MainApp {
         return this._instance;
     }
 
+    /**
+     * Check if secret mode is active (from URL or localStorage)
+     * @returns {boolean}
+     */
+    static isSecretMode() {
+        // Check URL first
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'secret') {
+            return true;
+        }
+        // Fall back to localStorage
+        return LocalConfig.getData('secretMode') === 'true';
+    }
+
     init() {
         console.log('main app init');
+
+        // Persist secret mode to localStorage if active
+        if (MainApp.isSecretMode()) {
+            LocalConfig.setData('secretMode', 'true');
+        }
 
         this.komik = LocalConfig.getData('komik', CONFIG_DEFAULT['komik']);
 
@@ -168,6 +187,11 @@ class MainApp {
                 url: this.komik,
             });
 
+            // Add mode parameter if in secret mode
+            if (MainApp.isSecretMode()) {
+                params.append('mode', 'secret');
+            }
+
             console.log('get chapter list', params);
 
             this.chapters.entities = {};
@@ -269,6 +293,11 @@ class MainApp {
             const params = new URLSearchParams({
                 url: selectChapterData.url,
             });
+
+            // Add mode parameter if in secret mode
+            if (MainApp.isSecretMode()) {
+                params.append('mode', 'secret');
+            }
 
             console.log('get komik data', params);
 

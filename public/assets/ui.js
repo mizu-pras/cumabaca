@@ -79,19 +79,23 @@ class MainUI {
         const nav = document.createElement('nav');
         nav.className = 'flex gap-6 mt-4';
 
+        // Check if we should add mode parameter
+        const isSecretMode = MainApp.isSecretMode();
+        const modeParam = isSecretMode ? '?mode=secret' : '';
+
         const homeLink = document.createElement('a');
-        homeLink.href = '/';
+        homeLink.href = '/' + modeParam;
         homeLink.className = 'text-gray-800 border-b-2 border-gray-800';
         homeLink.textContent = 'Home';
 
         const aboutLink = document.createElement('a');
-        aboutLink.href = '/about.html';
+        aboutLink.href = '/about.html' + modeParam;
         aboutLink.className =
             'text-gray-600 hover:text-gray-800 transition-colors';
         aboutLink.textContent = 'Tentang Kami';
 
         const websitesLink = document.createElement('a');
-        websitesLink.href = '/websites.html';
+        websitesLink.href = '/websites.html' + modeParam;
         websitesLink.className =
             'text-gray-600 hover:text-gray-800 transition-colors';
         websitesLink.textContent = 'Website yang Didukung';

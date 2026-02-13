@@ -218,6 +218,12 @@ The frontend uses vanilla JavaScript with a singleton pattern. The site is a **m
 
 **State persistence:** Uses localStorage to remember the current chapter between sessions.
 
+**Secret Mode:** NSFW/Secret mode (`?mode=secret`) persists across navigation and API calls:
+- URL parameter is preserved in all navigation links (Home, Tentang Kami, Website yang Didukung)
+- Secret mode state is saved to localStorage for persistence across sessions
+- API requests automatically include `&mode=secret` when secret mode is active
+- Enables access to NSFW websites (e.g., sektedoujin.cc) without 403 errors
+
 ### Web Scraping
 
 Scraping utilities in `utils/index.js`:

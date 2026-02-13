@@ -12,17 +12,21 @@ const ONE_DAY = 3600 * 24;
 
 const router = express.Router();
 
-// Check if URL needs image proxy (Komikcast images)
-function needsProxy(url) {
-    return url.includes('imgkc2.my.id') || url.includes('komikcast');
-}
-
 router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
-    const { url } = req.query;
+    const { url, mode } = req.query;
 
     try {
         const domain = validateUrl(url);
         const config = getWebsiteConfig(domain);
+
+        // Check if NSFW content requires secret mode
+        if (mode !== 'secret' && config.nsfw) {
+            return res.status(403).json({
+                error: 'NSFW content requires ?mode=secret parameter',
+                nsfw: true,
+                useSecretMode: true,
+            });
+        }
 
         // Use browser if the website requires JavaScript rendering
         const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
@@ -41,11 +45,20 @@ router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
 });
 
 router.get('/data', cacheMiddleware(ONE_DAY), async (req, res, next) => {
-    const { url } = req.query;
+    const { url, mode } = req.query;
 
     try {
         const domain = validateUrl(url);
         const config = getWebsiteConfig(domain);
+
+        // Check if NSFW content requires secret mode
+        if (mode !== 'secret' && config.nsfw) {
+            return res.status(403).json({
+                error: 'NSFW content requires ?mode=secret parameter',
+                nsfw: true,
+                useSecretMode: true,
+            });
+        }
 
         // Use browser if the website requires JavaScript rendering
         const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
@@ -75,10 +88,13 @@ router.get('/image', async (req, res, next) => {
             url,
             responseType: 'stream',
             headers: {
-                'Referer': 'https://v1.komikcast.fit/',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                Referer: 'https://v1.komikcast.fit/',
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             },
-            httpsAgent: new (require('https')).Agent({ rejectUnauthorized: false }),
+            httpsAgent: new (require('https').Agent)({
+                rejectUnauthorized: false,
+            }),
         });
 
         // Set CORS and security headers to prevent OpaqueResponseBlocking
