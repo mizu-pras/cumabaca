@@ -69,11 +69,11 @@ class MainUI {
         appTitle.className = 'text-4xl m-0';
         appTitle.textContent = CONFIG_DEFAULT.appName;
 
-        const appDesc = document.createElement('h3');
-        appDesc.className = 'font-normal m-0';
-        appDesc.innerHTML = `
-            Tempat paling efisien untuk membaca komik
-        `;
+        // const appDesc = document.createElement('h3');
+        // appDesc.className = 'font-normal m-0';
+        // appDesc.innerHTML = `
+        //     Tempat paling efisien untuk membaca komik
+        // `;
 
         // Navigation
         const nav = document.createElement('nav');
@@ -103,7 +103,7 @@ class MainUI {
         nav.append(homeLink, aboutLink, websitesLink);
 
         header.append(appTitle);
-        header.append(appDesc);
+        // header.append(appDesc);
         header.append(nav);
 
         this.rootElement.append(header);
@@ -156,7 +156,9 @@ class MainUI {
 
     generateSelectChapter() {
         // Remove old chapter selector if exists
-        const oldSelector = this.rootElement.querySelector('[data-chapter-selector]');
+        const oldSelector = this.rootElement.querySelector(
+            '[data-chapter-selector]',
+        );
         if (oldSelector) {
             oldSelector.remove();
         }
@@ -290,6 +292,10 @@ class MainUI {
             // Use proxy for Komikcast images to bypass CORS/hotlink protection
             img.src = this.getImageUrl(data);
 
+            // Track when image loads for preload triggering
+            img.onload = () => MainApp.instance.handleImageLoad();
+            img.onerror = () => MainApp.instance.handleImageLoad(); // Count even on error to proceed
+
             baca.append(img);
         });
 
@@ -322,12 +328,17 @@ class MainUI {
 
         this.render.append(titleEl);
         titleEl.after(bacaEl);
+
+        // SYNC: Update dropdown selection to match displayed chapter
+        this.updateSelectedChapter(MainApp.instance.activeChapter);
     }
 
     controllBuilder(isTop = false) {
         // Remove old navigation controls for this position
         const position = isTop ? 'top' : 'bottom';
-        const oldControls = this.rootElement.querySelector(`[data-nav-controls][data-nav-position="${position}"]`);
+        const oldControls = this.rootElement.querySelector(
+            `[data-nav-controls][data-nav-position="${position}"]`,
+        );
         if (oldControls) {
             oldControls.remove();
         }
@@ -563,6 +574,36 @@ class MainUI {
         }
     }
 
+    showPreloadIndicator() {
+        // Show subtle "Next chapter ready" indicator
+        // Update Next buttons in both main and floating navigation
+        const nextButtons = document.querySelectorAll(
+            '[data-nav-controls] button:last-child, [data-floating-selector] button:nth-child(3)',
+        );
+        nextButtons.forEach((btn) => {
+            btn.classList.add('bg-green-100', 'text-green-800');
+            // Store original text to restore later
+            if (!btn.dataset.originalText) {
+                btn.dataset.originalText = btn.textContent;
+            }
+            btn.textContent = 'Next ✓';
+        });
+    }
+
+    hidePreloadIndicator() {
+        // Reset Next buttons to original appearance
+        const nextButtons = document.querySelectorAll(
+            '[data-nav-controls] button:last-child, [data-floating-selector] button:nth-child(3)',
+        );
+        nextButtons.forEach((btn) => {
+            btn.classList.remove('bg-green-100', 'text-green-800');
+            if (btn.dataset.originalText) {
+                btn.textContent = btn.dataset.originalText;
+                delete btn.dataset.originalText;
+            }
+        });
+    }
+
     /**
      * @param {SubmitEvent} e
      */
@@ -587,9 +628,6 @@ class MainUI {
      */
     handleChapterChange(e) {
         const chapter = e.target.value;
-
-        console.log('chapter', chapter);
-
         MainApp.instance.changeChapter(chapter, true);
     }
 }

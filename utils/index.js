@@ -55,9 +55,10 @@ const fetchDataWithBrowser = async (url, config = {}) => {
         });
         const page = await browser.newPage();
 
-        // Navigate and wait for network to be idle
+        // Navigate and wait for DOM content to be loaded
         await page.goto(url, {
-            waitUntil: config.waitUntil ? config.waitUntil : 'networkidle0',
+            waitUntil: config.waitUntil ? config.waitUntil : 'domcontentloaded',
+            timeout: 60000, // 60 seconds timeout
         });
 
         // Get the rendered HTML

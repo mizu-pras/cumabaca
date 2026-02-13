@@ -23,7 +23,7 @@ router.get('/chapters', cacheMiddleware(ONE_DAY), async (req, res, next) => {
         // Check if NSFW content requires secret mode
         if (mode !== 'secret' && config.nsfw) {
             return res.status(403).json({
-                error: 'NSFW content requires ?mode=secret parameter',
+                error: 'NSFW content',
                 nsfw: true,
                 useSecretMode: true,
             });
@@ -55,7 +55,7 @@ router.get('/data', cacheMiddleware(ONE_DAY), async (req, res, next) => {
         // Check if NSFW content requires secret mode
         if (mode !== 'secret' && config.nsfw) {
             return res.status(403).json({
-                error: 'NSFW content requires ?mode=secret parameter',
+                error: 'NSFW content',
                 nsfw: true,
                 useSecretMode: true,
             });

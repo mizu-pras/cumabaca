@@ -52,6 +52,11 @@ class MainApp {
     isFetchChapterRunning = false;
     isFetchDataRunning = false;
 
+    // Preload state for next chapter
+    preloadedChapter = null;        // Stores chapter ID that is preloaded
+    preloadedData = null;           // Stores preloaded {data: [], title: ''}
+    preloadedImagesCount = 0;       // Count of images that finished loading
+
     static _instance;
 
     static get instance() {
@@ -156,6 +161,9 @@ class MainApp {
             `${this.komik}-chapter`,
             chapter,
         );
+
+        // Reset preload state for new chapter
+        this.preloadedImagesCount = 0;
 
         this.getKomikData(
             clear,
@@ -262,6 +270,25 @@ class MainApp {
      * @param {Function | undefined} cb
      */
     async getKomikData(clear = false, cb = undefined) {
+        // Check if we have preloaded data for this chapter
+        if (this.preloadedChapter === this.activeChapter && this.preloadedData) {
+            // Use preloaded data - instant!
+            this.komikData = this.preloadedData.data;
+            this.chapterTitle = this.preloadedData.title;
+
+            // Clear preload cache
+            this.preloadedChapter = null;
+            this.preloadedData = null;
+            this.preloadedImagesCount = 0;
+
+            MainUI.instance.setChapterSelectLoading(false);
+            MainUI.instance.hidePreloadIndicator();
+            if (cb) cb(clear);
+
+            return;
+        }
+
+        // Normal fetch flow
         if (this.isFetchDataRunning) {
             return;
         }
@@ -331,6 +358,53 @@ class MainApp {
 
             this.isFetchDataRunning = false;
             MainUI.instance.setChapterSelectLoading(false);
+        }
+    }
+
+    handleImageLoad() {
+        this.preloadedImagesCount++;
+
+        // When all current chapter images are loaded, preload next chapter
+        if (this.preloadedImagesCount >= this.komikData.length) {
+            this.preloadNextChapter();
+        }
+    }
+
+    async preloadNextChapter() {
+        const curChapterIndex = this.chapters.ids.indexOf(this.activeChapter);
+        const nextChapterIndex = curChapterIndex - 1;
+
+        // No next chapter
+        if (nextChapterIndex < 0) {
+            return;
+        }
+
+        const nextChapter = this.chapters.ids[nextChapterIndex];
+        const nextChapterData = this.chapters.entities[nextChapter];
+
+        // Already preloaded or currently loading
+        if (this.preloadedChapter === nextChapter || this.isFetchDataRunning) {
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({ url: nextChapterData.url });
+            if (MainApp.isSecretMode()) {
+                params.append('mode', 'secret');
+            }
+
+            const response = await fetch('/komik/data?' + params.toString());
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            this.preloadedChapter = nextChapter;
+            this.preloadedData = { data: data.data, title: data.title };
+
+            // Show subtle indicator that next chapter is ready
+            MainUI.instance.showPreloadIndicator();
+        } catch (error) {
+            console.log('Preload failed:', error);
         }
     }
 
