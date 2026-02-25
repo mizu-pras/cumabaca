@@ -58,10 +58,11 @@ RUN npm run build:css
 # (acceptable for local development; production stage still uses non-root user)
 # No USER directive in development stage
 
-EXPOSE 3100
+# Expose ports for Express (3100) and Vite dev server (5173)
+EXPOSE 3100 5173
 
-# Override with dev command that runs both nodemon and CSS watcher
-CMD ["sh", "-c", "npm run build:css -- --watch & npm run dev"]
+# Run Express (nodemon) and Vite concurrently
+CMD ["npm", "run", "dev:react"]
 
 
 # Stage 3: Production

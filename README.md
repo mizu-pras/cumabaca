@@ -2,10 +2,12 @@
 
 A minimalist comic scraper from [komiku.org](https://komiku.org) and [komikcast.fit](https://v1.komikcast.fit), Cuma Baca (_Just Read_) focuses on delivering a clean, distraction-free reading experience.
 
-- Node.js (v18)
-- npm (v9)
-- Express.js (v4)
-- Playwright (for JavaScript-rendered websites)
+## Tech Stack
+
+- **Backend:** Node.js, Express.js, MongoDB
+- **Frontend:** React 19, Vite, Tailwind CSS v4
+- **Scraping:** Puppeteer, Cheerio
+- **Deployment:** Docker, Podman
 
 ## Demo
 
@@ -13,44 +15,79 @@ Visit the [Cuma Baca Website](https://cumabaca.com) to try it out.
 
 ## Local Setup
 
-Follow these instructions to set up and run Cuma Baca on your local machine:
+### Option 1: Docker (Recommended)
 
-1. Clone the repository to your local machine.
+The easiest way to run Cuma Baca is with Docker/Podman. All services (Express, Vite, MongoDB) run in containers with hot-reload enabled.
 
+**Prerequisites:**
+- Docker or Podman (Fedora: `sudo dnf install podman podman-compose`)
+
+**Start development environment:**
+```bash
+podman-compose -f docker-compose.dev.yml up
+```
+
+**Access the app:**
+- Frontend (Vite): http://localhost:5173
+- Backend API: http://localhost:3100
+- MongoDB: localhost:27017
+
+**Stop containers:**
+```bash
+podman-compose -f docker-compose.dev.yml down
+```
+
+### Option 2: Without Docker
+
+1. Clone the repository:
     ```bash
     git clone <repository-url>
-    ```
-
-2. Navigate to the repository's directory.
-
-    ```bash
     cd <repository-name>
     ```
 
-3. Install the necessary dependencies.
-
+2. Install dependencies:
     ```bash
     npm install
-    npx playwright install chromium
     ```
 
-4. Run the application in development mode.
-
+3. Start MongoDB (required for caching):
     ```bash
-    npm run dev
+    # Using Docker
+    docker run -d -p 27017:27017 --name mongodb mongo:7
+
+    # Or install MongoDB locally
     ```
+
+4. Run the application:
+    ```bash
+    npm run dev:react
+    ```
+
+   This starts both Express backend (port 3100) and Vite frontend (port 5173) concurrently.
+
+**Available scripts:**
+| Command | Description |
+|---------|-------------|
+| `npm run dev:react` | Start Express + Vite concurrently |
+| `npm run dev` | Start Express only (nodemon) |
+| `npm run dev:vite` | Start Vite only |
+| `npm run build:react` | Build React app for production |
+| `npm run build:css` | Build Tailwind CSS |
+| `npm start` | Start production server |
 
 ### Usage
-
-Follow these steps to enjoy comics on Cuma Baca:
 
 1. Visit one of the supported sites and find a comic you want to read:
    - [komiku.org](https://komiku.org)
    - [v1.komikcast.fit](https://v1.komikcast.fit)
-2. Copy the comic's URL and paste it into the [Cuma Baca website](https://cumabaca.com).
-   - Example (komiku.org): `https://komiku.org/manga/versatile-mage/`
-   - Example (komikcast): `https://v1.komikcast.fit/series/the-games-top-troll`
-3. Enjoy an uninterrupted reading experience.
+   - [sektedoujin.cc](https://sektedoujin.cc) (NSFW - requires enabling Secret mode)
+
+2. Copy the comic's URL and paste it into the app.
+
+3. Enjoy an uninterrupted reading experience with:
+   - Chapter preloading for instant navigation
+   - Image proxy for hotlink-protected sources
+   - Persistent cache using MongoDB
 
 ### Screenshots
 

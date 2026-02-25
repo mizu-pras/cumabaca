@@ -26,6 +26,7 @@ services:
         restart: unless-stopped
         ports:
             - '3100:3100'
+            - '5173:5173'  # Vite dev server
         environment:
             - NODE_ENV=development
             - MONGODB_URI=mongodb://mongodb:27017/cumabaca
@@ -43,9 +44,14 @@ services:
             - ./public:/app/public:z
             - ./app.js:/app/app.js:z
             - ./bin:/app/bin:z
+            # React source files for Vite hot-reload
+            - ./src:/app/src:z
+            - ./vite.config.js:/app/vite.config.js:z
+            - ./index.html:/app/index.html:z
+            - ./postcss.config.js:/app/postcss.config.js:z
             # Preserve node_modules in container
             - /app/node_modules
-        # CMD runs both nodemon + CSS watcher (defined in Dockerfile)
+        # CMD runs Express (nodemon) + Vite concurrently (defined in Dockerfile)
 
 volumes:
     mongodb_data_dev:

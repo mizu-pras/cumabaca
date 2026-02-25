@@ -1,3 +1,6 @@
-@import '../../public/output.css';
+@import "tailwindcss";
 
-/* Additional global styles if needed */
+/* Additional global styles */
+body {
+  @apply bg-gray-50 text-gray-900;
+}

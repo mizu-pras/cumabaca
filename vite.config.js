@@ -14,6 +14,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    host: '0.0.0.0',  // Expose to network for Docker access
     port: 5173,
     proxy: {
       '/komik': {
