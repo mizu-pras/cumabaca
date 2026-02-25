@@ -7,7 +7,7 @@ export function FloatingChapterSelector() {
   const [visible, setVisible] = useState(false);
   const [showTrigger, setShowTrigger] = useState(false);
   const { ids } = useChapterList();
-  const { activeChapter, setActiveChapter } = useReaderStore();
+  const { activeChapter, activeScrollChapter, setActiveChapter } = useReaderStore();
   const { nextChapter, prevChapter } = useChapterNavigation();
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function FloatingChapterSelector() {
             Prev
           </button>
           <select
-            value={activeChapter || ''}
+            value={activeScrollChapter || activeChapter || ''}
             onChange={(e) => setActiveChapter(e.target.value)}
             className="px-4 py-2 border-b border-gray-300 flex-1 min-w-0"
           >
