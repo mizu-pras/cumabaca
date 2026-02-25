@@ -341,3 +341,4 @@ Scraping utilities in `utils/index.js`:
 7. **NO Cloudflare sites** - Do NOT add Cloudflare-protected websites (headless browsers are detected)
 8. **NSFW filtering** - NSFW websites require secret mode enabled via settings or URL parameter
 9. **Infinite scroll** - Reader loads chapters dynamically as user scrolls
+10. **Manual testing** - Always use `docker-compose -f docker-compose.dev.yml up` for manual testing to ensure consistent environment with MongoDB and hot-reload
