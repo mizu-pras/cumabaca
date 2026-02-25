@@ -8,7 +8,6 @@ const path = require('path');
 
 const { connectToDatabase } = require('./config/database');
 
-const indexRouter = require('./routes/index');
 const komikRouter = require('./routes/komik');
 
 const app = express();
@@ -22,16 +21,15 @@ app.use(cookieParser());
 app.use(methodOverride());
 app.use(express.static('public'));
 
-// Routes
-app.use('/', indexRouter);
+// API Routes
 app.use('/komik', komikRouter);
 
 // Serve React static assets in production
 if (process.env.NODE_ENV === 'production') {
-  app.use('/react/assets', express.static(path.join(__dirname, 'dist-react/assets')));
+  // Serve React assets at /assets/ to match Vite build paths
+  app.use('/assets', express.static(path.join(__dirname, 'dist-react/assets')));
 
-  // Serve React app for migrated routes (Phase 2+)
-  // For now, we only serve the root path with React
+  // Serve React app for all routes (SPA)
   app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist-react/index.html'));
   });

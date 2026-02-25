@@ -22,8 +22,8 @@ RUN npm ci
 # Copy source files
 COPY . .
 
-# Build Tailwind CSS
-RUN npm run build:css
+# Build Tailwind CSS and React app
+RUN npm run build:css && npm run build:react
 
 
 # Stage 2: Development (with hot-reload support)
@@ -102,6 +102,7 @@ RUN npm ci --only=production && \
 
 # Copy built assets from builder
 COPY --chown=appuser:appuser --from=builder /app/public/output.css ./public/output.css
+COPY --chown=appuser:appuser --from=builder /app/dist-react ./dist-react
 
 # Copy application files with proper ownership
 COPY --chown=appuser:appuser routes ./routes
