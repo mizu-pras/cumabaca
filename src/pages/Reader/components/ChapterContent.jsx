@@ -3,6 +3,7 @@ import { useActiveChapterDetection } from '../hooks/useActiveChapterDetection';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 import { useReaderStore } from '@/stores/readerStore';
 import { ChapterSeparator } from './ChapterSeparator';
+import { ChapterImage } from './ChapterImage';
 import { LoadingSpinner } from '@/components/LoadingSpinner/LoadingSpinner';
 import { useEffect, useRef } from 'react';
 
@@ -56,7 +57,7 @@ export function ChapterContent() {
 
   return (
     <div className="flex flex-col items-center mb-16">
-      {loadedChapters.ids.map((chapterId, index) => {
+      {loadedChapters.ids.map((chapterId) => {
         const chapter = loadedChapters.entities[chapterId];
         const isLoading = loadingChapters[chapterId];
 
@@ -82,14 +83,13 @@ export function ChapterContent() {
             {chapter?.loaded && !chapter?.error && (
               <div className="flex flex-col items-center">
                 {chapter.data.map((imgUrl, imgIndex) => (
-                  <img
+                  <ChapterImage
                     key={imgIndex}
                     src={imgUrl}
                     alt={`Page ${imgIndex + 1}`}
+                    chapterId={chapterId}
+                    isFirst={imgIndex === 0}
                     className="w-full max-w-[1000px]"
-                    loading="lazy"
-                    data-chapter-first={imgIndex === 0}
-                    data-chapter-id={chapterId}
                   />
                 ))}
               </div>
