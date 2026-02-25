@@ -21,6 +21,7 @@ export function useInfiniteChapters() {
   const nextChapterIdRef = useRef(null);
   const hasInitializedRef = useRef(false);
   const isLoadingRef = useRef(false);
+  const lastLoadedChapterRef = useRef(null);
 
   // Fetch chapter URL helper
   const getChapterUrl = useCallback(async (chapterId) => {
@@ -132,11 +133,19 @@ export function useInfiniteChapters() {
   // Initialize: load active chapter
   useEffect(() => {
     if (!komik || !activeChapter) return;
-    if (hasInitializedRef.current) return;
+
+    // Reset if chapters were cleared (switched to different chapter)
+    if (loadedChapters.ids.length === 0) {
+      hasInitializedRef.current = false;
+    }
+
+    // Skip if already loaded this chapter
+    if (lastLoadedChapterRef.current === activeChapter) return;
 
     hasInitializedRef.current = true;
+    lastLoadedChapterRef.current = activeChapter;
     loadChapter(activeChapter);
-  }, [komik, activeChapter, loadChapter]);
+  }, [komik, activeChapter, loadChapter, loadedChapters.ids.length]);
 
   // Update next chapter ID when chapters change
   useEffect(() => {
