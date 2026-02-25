@@ -43,18 +43,6 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
-## Task Management
-1. Plan First: Write plan to 'tasks/todo.md' with checkable items
-2. Verify Plan: Check in before starting implementation
-3. Track Progress: Mark items complete as you go
-4. Explain Changes: High-level summary at each step
-5. Document Results: Add review to 'tasks/todo.md'
-6. Capture Lessons: Update 'tasks/lessons.md' after corrections
-
-## Core Principles
-- Simplicity First: Make every change as simple as possible. Impact minimal code.
-- No Laziness: Find root causes. No temporary fixes. Senior developer standards.
-- Minimal Impact: Changes should only touch what's necessary. Avoid introducing bugs.
 
 ## Development Commands
 
@@ -62,14 +50,26 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 # Install dependencies
 npm install
 
+# Backend development (Express with hot-reload)
+npm run dev
+
+# React development (Vite dev server only)
+npm run dev:vite
+
+# Full development (Backend + Vite concurrently)
+npm run dev:react
+
+# Production mode (backend only)
+npm start
+
 # Build CSS (Tailwind v4 via PostCSS)
 npm run build:css
 
-# Development mode (auto-reload on changes)
-npm run dev
+# Build React app for production
+npm run build:react
 
-# Production mode
-npm start
+# Build both CSS and React
+npm run build:all
 
 # Test scraper functionality
 node test-scraper.js
@@ -77,185 +77,72 @@ node test-scraper.js
 
 ## Docker Deployment
 
-The project includes Docker support for containerized deployment.
+The project includes Docker support for containerized deployment. See `DOCKER.md` for detailed documentation.
 
-### Docker Commands
-
+**Quick commands:**
 ```bash
-# Build the image
-docker build -t cumabaca .
-
-# Run the container (requires external MongoDB)
-docker run -d -p 3100:3100 --name cumabaca -e MONGODB_URI=mongodb://host.docker.internal:27017/cumabaca cumabaca
-
-# Using Docker Compose (recommended - includes MongoDB)
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop the container
-docker-compose down
-
-# Stop and remove all data (including cache)
-docker-compose down -v
-```
-
-### Docker Configuration
-
-**Key files:**
-
-- `Dockerfile` - Multi-stage build with development (hot-reload) and production stages
-- `docker-compose.yml` - Production configuration with resource limits
-- `docker-compose.dev.yml` - Development configuration with hot-reload volume mounts
-- `.dockerignore` - Excludes unnecessary files from build context
-
-**Container details:**
-
-- **Base image:** `node:20-alpine` with Chromium for Puppeteer
-- **Port:** 3100 (exposed)
-- **User:** Runs as non-root user `appuser` (UID 1001)
-- **Health check:** HTTP GET to `/` every 30s (10s timeout, 40s start period)
-- **Resource limits:** 1 CPU, 1GB RAM (adjustable in `docker-compose.yml`)
-
-**Services:**
-
-- `web` - Application container (port 3100)
-- `mongodb` - MongoDB 7 for persistent cache (port 27017)
-
-**Volumes:**
-
-- `./logs:/app/logs` - Persistent logs directory
-- `mongodb_data` - MongoDB data directory (production)
-- `mongodb_data_dev` - MongoDB data directory (development)
-
-**Environment variables:**
-
-- `MONGODB_URI` - MongoDB connection string (default: `mongodb://mongodb:27017/cumabaca`)
-- `CACHE_TTL` - Cache TTL in seconds (default: `86400` = 24 hours)
-
-### Docker Development (Hot-Reload)
-
-Development mode supports live reloading without rebuilding the container.
-
-**Prerequisites:**
-
-```bash
-# Install podman-compose (Fedora/CentOS/RHEL)
-sudo dnf install podman-compose
-
-# Or via pip
-pip install podman-compose
-```
-
-**Development commands:**
-
-```bash
-# Initial setup (first time - builds and starts)
-podman-compose -f docker-compose.dev.yml up --build
-
-# Daily development (starts dev container with hot-reload)
-podman-compose -f docker-compose.dev.yml up
-
-# View logs
-podman-compose -f docker-compose.dev.yml logs -f
-
-# Stop dev container (including MongoDB)
-podman-compose -f docker-compose.dev.yml down
-
-# Stop and remove all data (including cache)
-podman-compose -f docker-compose.dev.yml down -v
-```
-
-**What works with hot-reload:**
-
-| Change Type | Behavior |
-|-------------|----------|
-| **JS/Route/Scraper changes** | Nodemon auto-restarts instantly |
-| **CSS changes** | PostCSS watcher rebuilds output.css automatically |
-| **package.json changes** | Rebuild with `--build` flag |
-| **Dockerfile changes** | Rebuild with `--build` flag |
-
-**Development stage details:**
-
-- Installs ALL dependencies (including devDependencies like nodemon)
-- Runs both CSS watcher and nodemon in parallel
-- Volume mounts source code for instant sync
-- Preserves node_modules inside container
-
-**Quick reference:**
-
-```bash
-# Start development
-podman-compose -f docker-compose.dev.yml up
+# Start development (hot-reload)
+docker-compose -f docker-compose.dev.yml up
 
 # Start production
-podman-compose up -d
+docker-compose up -d
 
-# Rebuild when dependencies change
-podman-compose -f docker-compose.dev.yml up --build
+# Stop containers
+docker-compose down
 ```
+
+**Environment variables:**
+- `MONGODB_URI` - MongoDB connection string (default: `mongodb://mongodb:27017/cumabaca`)
+- `CACHE_TTL` - Cache TTL in seconds (default: `86400` = 24 hours)
 
 ## Project Structure
 
 ```
 cumabaca/
-├── app.js                    # Express app configuration and server entry point
-├── package.json              # Dependencies and npm scripts
+├── app.js                    # Express app configuration
+├── package.json              # Dependencies and scripts
+├── vite.config.js            # Vite configuration for React
 ├── postcss.config.js         # PostCSS configuration for Tailwind v4
-├── test-scraper.js           # CLI tool for testing scraper functionality
 │
 ├── config/                   # Configuration files
-│   ├── database.js          # MongoDB connection management with indexes
-│   └── websites.js          # Website configuration (domains, base URLs, rendering mode)
+│   ├── database.js          # MongoDB connection with indexes
+│   └── websites.js          # Website scraper configuration
 │
 ├── routes/                   # Express route handlers
-│   └── komik.js             # Comic scraping routes with caching middleware
+│   ├── index.js             # Route index
+│   └── komik.js             # Comic scraping routes with caching
 │
 ├── scrapers/                 # Scraper implementations
-│   ├── index.js             # Scraper registry/factory for domain-based selection
-│   ├── komiku.js           # Komiku scraper implementation
-│   ├── komikcast.js         # Komikcast scraper implementation
-│   └── sektedoujin.js       # Sektedoujin scraper implementation (NSFW)
+│   ├── index.js             # Scraper registry/factory
+│   ├── komiku.js            # Komiku scraper
+│   ├── komikcast.js         # Komikcast scraper
+│   └── sektedoujin.js       # Sektedoujin scraper (NSFW)
 │
 ├── utils/                    # Utility modules
-│   ├── cache.js             # Cache middleware using MongoDB for persistence
-│   ├── index.js             # Scraping utilities (axios, cheerio, puppeteer, playwright)
-│   ├── mongodb-cache.js     # MongoDB cache operations (get, put, del, clear, getStats)
-│   └── test-scraper.js      # Scraper testing utilities for validating website scraping
+│   ├── cache.js             # Cache middleware
+│   ├── mongodb-cache.js     # MongoDB cache operations
+│   ├── test-scraper.js      # Scraper testing utilities
+│   └── index.js             # Scraping utilities
 │
-├── public/                   # Static files and frontend
-│   ├── index.html           # Main page (comic reader)
-│   ├── about.html           # About page (static HTML, no JS dependencies)
-│   ├── cached.html          # Cached comics management page
-│   ├── secret.html          # NSFW/Secret mode settings page
-│   ├── websites.html        # Supported websites listing page
-│   ├── input.css            # Tailwind CSS v4 imports (source)
-│   ├── output.css           # Compiled CSS (generated, DO NOT edit)
-│   └── assets/              # Frontend JavaScript
-│       ├── main.js          # MainApp class (data fetching, state, navigation)
-│       ├── ui.js            # MainUI class (DOM manipulation, user interactions)
-│       ├── cached.js        # CachedApp class (cached comics functionality)
-│       └── secret.js        # SecretApp class (NSFW settings functionality)
+├── src/                      # React frontend source
+│   ├── main.jsx             # React entry point
+│   ├── App.jsx              # Root app component
+│   ├── components/          # Shared React components
+│   ├── pages/               # Page components (Reader, Cached, Secret, etc.)
+│   ├── stores/              # Zustand state stores
+│   ├── lib/                 # Utilities and API client
+│   └── styles/              # Global styles
 │
-├── examples/                 # Reference HTML files for scraper development
-│   ├── komikcast.chapter-data.html
-│   ├── komikcast.chapter.html
-│   └── toongod.chapter.html
+├── public/                   # Static files
+│   ├── input.css            # Tailwind CSS v4 source
+│   ├── output.css           # Compiled CSS (generated)
+│   └── postcss.config.js    # PostCSS config for public CSS
 │
-├── screenshot/               # Device UI reference images
-│   ├── desktop.png
-│   ├── mobile.PNG
-│   └── tablet.jpg
-│
-├── logs/                     # Application logs (persistent in Docker)
-│
-├── Dockerfile                # Multi-stage build (development + production)
-├── docker-compose.yml        # Production configuration with resource limits
-├── docker-compose.dev.yml    # Development configuration with hot-reload
-├── .dockerignore             # Excludes unnecessary files from build context
-│
-└── CLAUDE.md                 # This file - project documentation and guidance
+├── examples/                 # Reference HTML for scrapers
+├── docs/                     # Project documentation
+├── Dockerfile                # Multi-stage build
+├── docker-compose.yml        # Production config
+└── docker-compose.dev.yml    # Development config (hot-reload)
 ```
 
 ## Architecture
@@ -394,53 +281,39 @@ The `screenshot/` directory contains device UI reference images:
 - **`screenshot/mobile.PNG`** - Mobile view reference
 - **`screenshot/tablet.jpg`** - Tablet view reference
 
-### Frontend (Vanilla JavaScript)
+### Frontend (React + Vite)
 
-The frontend uses vanilla JavaScript with a singleton pattern. The site is a **multi-page website** (not SPA):
+The frontend uses React with Vite as the build tool.
 
-**Core pages:**
-- **`public/index.html`** - Main page (comic reader)
-- **`public/about.html`** - About page (static HTML, no JS dependencies)
+**Tech stack:**
+- React 19 with JSX
+- React Router for routing
+- Zustand for state management
+- Lucide React for icons
+- Tailwind CSS v4 for styling
 
-**Management pages:**
-- **`public/cached.html`** - Cached comics management page with relative time display
-- **`public/secret.html`** - NSFW/Secret mode settings page with persistent toggle
-- **`public/websites.html`** - Supported websites listing page
+**Pages (src/pages/):**
+- **Reader** - Main comic reader with infinite scroll
+- **Cached** - Cached comics management
+- **Secret** - NSFW mode settings
+- **Websites** - Supported websites listing
+- **About** - About page
 
-**JavaScript files:**
-- **`public/assets/main.js`** - MainApp class handles data fetching, state management, and chapter navigation
-- **`public/assets/ui.js`** - MainUI class handles DOM manipulation and user interactions
-- **`public/assets/cached.js`** - CachedApp class manages cached comics functionality
-- **`public/assets/secret.js`** - SecretApp class handles NSFW settings and preferences
-- **`public/input.css`** - Tailwind CSS v4 imports (compiled to `public/output.css`)
+**State stores (src/stores/):**
+- `nsfwStore.js` - NSFW mode state (Zustand)
+- `readerStore.js` - Reader state with infinite scroll
 
-**UI Components:**
-- Form submission with loading states (spinner animation, disabled inputs)
-- Floating chapter selector with back-to-top button
-- Chapter dropdown for navigation
-- Prev/Next chapter controls
-- Image proxy integration for hotlink-protected sources
-- Domain-specific colored badges for cached comics
-- Relative time display (e.g., "2 jam lalu", "Kemarin")
-
-**State persistence:** Uses localStorage to remember:
-- Current chapter between sessions
-- NSFW mode preference (`nsfwEnabled` key)
-- Navigation state for chapter preloading
-
-**Chapter Preloading:**
-- Instant navigation between chapters with preloading
-- Memory cache optimization for better performance
-- Reduces wait time when switching chapters
+**Key hooks (src/pages/Reader/hooks/):**
+- `useInfiniteChapters.js` - Infinite scroll chapter loading
+- `useScrollPosition.js` - Scroll position tracking
+- `useActiveChapterDetection.js` - Detect active chapter from scroll
+- `useChapterNavigation.js` - Chapter navigation logic
 
 **Secret/NSFW Mode:**
+- Zustand store with localStorage persistence (`nsfwEnabled` key)
 - Client-side toggle with warning messages
-- Persistent settings via localStorage (`nsfwEnabled` key)
-- Migration system from old `secretMode` to new `nsfwEnabled` key
-- Server-side validation - backend checks for `mode=secret` parameter
-- NSFW content filtering - websites tagged with `data-nsfw="true"` are hidden by default
-- Visual NSFW badge - red badge appears in header when mode is active
-- Enables access to NSFW websites (e.g., sektedoujin.cc) without 403 errors
+- Server-side validation via `mode=secret` parameter
+- NSFW websites (e.g., sektedoujin.cc) filtered by default
 
 ### Web Scraping
 
@@ -461,15 +334,10 @@ Scraping utilities in `utils/index.js`:
 
 1. **No test suite** - The project currently has no automated tests
 2. **No authentication** - The app is completely open, no user system
-3. **Environment** - Port is configurable via environment variable (defaults to Express standard)
-4. **Deployment** - Supports Docker with multi-stage build (development + production stages)
-5. **Styling** - Uses Tailwind CSS v4 via PostCSS. Run `npm run build:css` to compile `public/input.css` to `public/output.css`
-6. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
-7. **Headless browser** - Playwright and Puppeteer with Chromium are used for sites requiring JavaScript rendering
-8. **Hot-reload** - Docker development mode supports instant reload for JS/CSS changes
-9. **Persistent cache** - MongoDB provides persistent caching that survives server restarts. First scrape is slow (~5-10s), subsequent requests are instant (<50ms)
-10. **NO Cloudflare-protected websites** - Do NOT add websites protected by Cloudflare. Headless browsers are easily detected by Cloudflare and the content cannot be scraped. This includes websites that show "Just a moment..." or "Performing security verification..." pages.
-11. **NSFW content filtering** - NSFW websites (e.g., sektedoujin.cc) require secret mode to be enabled via settings page or URL parameter
-12. **Chapter preloading** - Next/previous chapters are preloaded in memory for instant navigation
-13. **Cache TTL** - Default is 24 hours (86400 seconds), configurable via `CACHE_TTL` environment variable
-14. **LocalStorage keys** - `currentChapter`, `nsfwEnabled` (migrated from `secretMode`)
+3. **Port** - Configurable via environment variable (defaults to 3100)
+4. **Image proxy** - Some sources (Komikcast) require hotlink bypass via `/komik/image` proxy
+5. **Headless browser** - Puppeteer with Chromium used for JS-rendered sites
+6. **Persistent cache** - MongoDB caching survives restarts. First scrape ~5-10s, subsequent <50ms
+7. **NO Cloudflare sites** - Do NOT add Cloudflare-protected websites (headless browsers are detected)
+8. **NSFW filtering** - NSFW websites require secret mode enabled via settings or URL parameter
+9. **Infinite scroll** - Reader loads chapters dynamically as user scrolls

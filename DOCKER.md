@@ -1,11 +1,23 @@
 # Docker Setup for Cuma Baca
 
-This guide covers running Cuma Baca with Docker, which bundles all dependencies including Playwright's Chromium browser for consistent environments across development and production.
+This guide covers running Cuma Baca with Docker, which bundles all dependencies including Puppeteer's Chromium browser and MongoDB for consistent environments across development and production.
 
 ## Prerequisites
 
+**Docker (Linux/Mac/Windows):**
 - Docker Engine 20.10+
 - Docker Compose 2.0+
+
+**Podman (Fedora/CentOS/RHEL):**
+```bash
+# Install podman-compose
+sudo dnf install podman-compose
+
+# Or via pip
+pip install podman-compose
+```
+
+Use `podman-compose` instead of `docker-compose` for all commands below.
 
 ## Quick Start
 
@@ -40,6 +52,8 @@ The application uses the following environment variables (with defaults):
 |----------|---------|-------------|
 | `NODE_ENV` | `production` | Node environment |
 | `PORT` | `3100` | Application port |
+| `MONGODB_URI` | `mongodb://mongodb:27017/cumabaca` | MongoDB connection string |
+| `CACHE_TTL` | `86400` | Cache TTL in seconds (24 hours) |
 
 To override variables in docker-compose.yml:
 
@@ -48,7 +62,7 @@ services:
   web:
     environment:
       - PORT=3000
-      - NODE_ENV=development
+      - CACHE_TTL=3600  # 1 hour cache
 ```
 
 ## Production Deployment
@@ -71,11 +85,27 @@ docker-compose up -d
 curl http://localhost:3100/
 ```
 
-### 4. Test Playwright Scraping
+### 4. Test Puppeteer Scraping
 
 ```bash
 curl "http://localhost:3100/komik/chapters?url=https://v1.komikcast.fit/manga/one-piece/"
 ```
+
+## Services
+
+The docker-compose setup includes two services:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| `web` | Express backend + React frontend | 3100 |
+| `mongodb` | MongoDB for cache persistence | 27017 |
+
+## Volumes
+
+| Volume | Purpose |
+|--------|---------|
+| `mongodb_data` | MongoDB data persistence |
+| `./logs:/app/logs` | Application logs (mapped to host) |
 
 ## Docker Compose Commands Reference
 
@@ -126,21 +156,21 @@ ports:
   - "3000:3100"  # Maps host port 3000 to container port 3100
 ```
 
-### Playwright Browser Issues
+### Puppeteer Browser Issues
 
-The official Playwright image includes all required browser dependencies. If you encounter browser launch errors:
+The container uses Puppeteer with Chromium. If you encounter browser launch errors:
 
 ```bash
 # Verify Chromium is installed
-docker-compose exec web npx playwright install --help
+docker-compose exec web ls -la /usr/bin/chromium*
 
-# Reinstall browsers if needed
-docker-compose exec web npx playwright install chromium --with-deps
+# Test Puppeteer in container
+docker-compose exec web node -e "require('puppeteer').then(p => p.executablePath())"
 ```
 
 ### Memory Issues
 
-The Playwright base image is ~1GB. Adjust resource limits in `docker-compose.yml`:
+Adjust resource limits in `docker-compose.yml`:
 
 ```yaml
 deploy:
@@ -151,7 +181,7 @@ deploy:
 
 ### High CPU Usage
 
-Playwright's headless browser can be CPU-intensive. Consider:
+Puppeteer's headless browser can be CPU-intensive. Consider:
 - Reducing concurrent scraping requests
 - Increasing the CPU limit in docker-compose.yml
 - Implementing request queuing in the application
@@ -178,42 +208,80 @@ server {
 }
 ```
 
+## Cache Management
+
+The application uses MongoDB for persistent caching. Manage cache via API endpoints:
+
+```bash
+# View cache statistics
+curl "http://localhost:3100/komik/cache/stats"
+
+# Clear all cache entries
+curl -X DELETE "http://localhost:3100/komik/cache"
+
+# Delete specific cache entry
+curl -X DELETE "http://localhost:3100/komik/cache?key=<cache-key>"
+```
+
+**Cache Stats Response:**
+```json
+{
+  "totalEntries": 42,
+  "expiredEntries": 0,
+  "totalSize": 125000,
+  "avgSize": 2976
+}
+```
+
 ## Security Considerations
 
-1. **Non-root User**: The container runs as `appuser` (UID 1000) for security
-2. **Resource Limits**: Default limits prevent resource exhaustion
-3. **Health Check**: Built-in health check monitors application status
-4. **Minimal Attack Surface**: Only production dependencies are included
+1. **Non-root User**: Container runs as `appuser` (UID 1001) for security
+2. **Resource Limits**: Default limits (1 CPU, 1GB RAM) prevent resource exhaustion
+3. **Health Check**: HTTP GET to `/` every 30s (10s timeout, 40s start period)
+4. **MongoDB**: Internal service, not exposed to host network
 
 ## Image Size
 
 The final image size is approximately **1.5GB** due to:
-- Playwright base image (~1GB)
-- Chromium browser and dependencies
+- `node:20-alpine` base image with Chromium
+- Puppeteer and browser dependencies
 - Node.js runtime and application dependencies
 
-This is expected and normal for Playwright-based applications.
+This is expected and normal for Puppeteer-based applications.
 
 ## Development Mode
 
-For development with hot-reload, create a `docker-compose.dev.yml`:
+For development with hot-reload, use the provided `docker-compose.dev.yml`:
 
-```yaml
-version: '3.8'
+```bash
+# Initial setup (builds and starts)
+docker-compose -f docker-compose.dev.yml up --build
 
-services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-    ports:
-      - "3100:3100"
-    command: npm run dev
+# Daily development (starts with hot-reload)
+docker-compose -f docker-compose.dev.yml up
+
+# View logs
+docker-compose -f docker-compose.dev.yml logs -f
+
+# Stop dev container
+docker-compose -f docker-compose.dev.yml down
+
+# Stop and remove all data (including cache)
+docker-compose -f docker-compose.dev.yml down -v
 ```
 
-Run with: `docker-compose -f docker-compose.dev.yml up`
+### Hot-Reload Behavior
+
+| Change Type | Behavior |
+|-------------|----------|
+| Backend/Route/Scraper changes | Nodemon auto-restarts instantly |
+| CSS changes | PostCSS watcher rebuilds automatically |
+| package.json changes | Rebuild with `--build` flag |
+| Dockerfile changes | Rebuild with `--build` flag |
+
+### Development Stage Details
+
+- Installs ALL dependencies (including devDependencies)
+- Runs CSS watcher and nodemon in parallel
+- Volume mounts source code for instant sync
+- Preserves node_modules inside container
