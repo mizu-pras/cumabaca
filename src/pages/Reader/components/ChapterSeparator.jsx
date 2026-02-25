@@ -9,7 +9,7 @@ export function ChapterSeparator({ chapter, title, error, onRetry }) {
                 <div className="flex items-center gap-2">
                     {title && (
                         <span className="text-gray-600 dark:text-gray-400">
-                            - {title}
+                            {title}
                         </span>
                     )}
                 </div>
