@@ -10,3 +10,7 @@ README.md
 .vscode
 .idea
 logs
+
+.agents
+.claude
+CLAUDE.md

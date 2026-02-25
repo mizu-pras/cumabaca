@@ -2,7 +2,7 @@ module.exports = {
     websites: {
         komiku: {
             name: 'Komiku',
-            domains: ['komiku.org', 'komiku.id'],
+            domains: ['komiku.org'],
             baseUrl: 'https://komiku.org',
             lang: 'id',
         },
@@ -13,7 +13,8 @@ module.exports = {
             lang: 'id',
             useBrowser: true,
             waitUntil: 'networkidle0',
-            comics: 'https://v1.komikcast.fit/comics?sort=popularity&order=desc',
+            comics: '/comics?sort=popularity&order=desc',
+            searchComics: '/comics?search={query}',
         },
         sektedoujin: {
             name: 'Sektedoujin',
