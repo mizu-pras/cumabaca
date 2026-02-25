@@ -3,11 +3,9 @@ import { useChapterList } from '../hooks/useChapterList';
 
 export function NavigationControls({ position = 'top' }) {
   const { ids } = useChapterList();
-  const { activeScrollChapter, activeChapter, clearAndLoadChapter } = useReaderStore();
+  const { activeChapter, clearAndLoadChapter } = useReaderStore();
 
-  // Use currently visible chapter for navigation
-  const currentChapter = activeScrollChapter || activeChapter;
-  const currentIndex = ids.indexOf(currentChapter);
+  const currentIndex = ids.indexOf(activeChapter);
 
   const hasNext = currentIndex > 0;
   const hasPrev = currentIndex < ids.length - 1;

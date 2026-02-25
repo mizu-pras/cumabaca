@@ -9,8 +9,8 @@ import { BackToTop } from '@/components/BackToTop/BackToTop';
 import { FloatingChapterSelector } from './components/FloatingChapterSelector';
 
 function ReaderContent() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { komik, setKomik, activeChapter, activeScrollChapter, setActiveScrollChapter, loadedChapterIds } = useReaderStore();
+  const [searchParams] = useSearchParams();
+  const { komik, setKomik, activeChapter } = useReaderStore();
 
   // Sync URL -> store on mount and URL changes
   useEffect(() => {
@@ -18,20 +18,7 @@ function ReaderContent() {
     if (urlFromQuery && urlFromQuery !== komik) {
       setKomik(urlFromQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, setKomik]);
-
-  // Sync activeScrollChapter -> activeChapter for selector
-  useEffect(() => {
-    if (activeChapter !== activeScrollChapter && activeScrollChapter) {
-      // Note: we don't set activeChapter here to avoid loop
-      // The selector should read from activeScrollChapter instead
-      // This will be handled in Task 9
-    }
-  }, [activeChapter, activeScrollChapter]);
-
-  // Update readerStore to use activeScrollChapter for selector
-  // This requires ChapterSelector to use activeScrollChapter instead of activeChapter
+  }, [searchParams, komik, setKomik]);
 
   return (
     <>

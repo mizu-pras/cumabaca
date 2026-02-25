@@ -3,7 +3,7 @@ import { useReaderStore } from '@/stores/readerStore';
 
 export function useActiveChapterDetection(loadedChapterIds) {
   const activeChapter = useReaderStore(state => state.activeChapter);
-  const setActiveScrollChapter = useReaderStore(state => state.setActiveScrollChapter);
+  const setActiveChapter = useReaderStore(state => state.setActiveChapter);
   const observerRef = useRef(null);
   const activeChapterRef = useRef(activeChapter);
 
@@ -35,7 +35,7 @@ export function useActiveChapterDetection(loadedChapterIds) {
             // Use the first visible chapter (topmost)
             const newActiveChapter = visibleChapters[0];
             if (newActiveChapter !== activeChapterRef.current) {
-              setActiveScrollChapter(newActiveChapter);
+              setActiveChapter(newActiveChapter);
             }
           }
         }
@@ -56,5 +56,5 @@ export function useActiveChapterDetection(loadedChapterIds) {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [loadedChapterIds, setActiveScrollChapter]);
+  }, [loadedChapterIds, setActiveChapter]);
 }

@@ -12,10 +12,6 @@ export const useReaderStore = create(
       // NOT persisted (images are large, refetch on page load is better)
       loadedChapters: { entities: {}, ids: [] },
 
-      // activeScrollChapter: NOT persisted (resets on page load)
-      // Used for viewport tracking only - should always start fresh on each session
-      activeScrollChapter: null,
-
       // Loading state
       loadingChapters: {}, // { chapterId: boolean }
 
@@ -26,10 +22,8 @@ export const useReaderStore = create(
       // Actions
       setKomik: (url) => set({ komik: url }),
       setActiveChapter: (id) => set({ activeChapter: id }),
-      setActiveScrollChapter: (id) => set({ activeScrollChapter: id }),
       clearAndLoadChapter: (chapterId) => set((state) => ({
         activeChapter: chapterId,
-        activeScrollChapter: chapterId,
         loadedChapters: { entities: {}, ids: [] },
         loadingChapters: { [chapterId]: true }
       })),
@@ -85,7 +79,6 @@ export const useReaderStore = create(
         komik: state.komik,
         activeChapter: state.activeChapter,
         // loadedChapters NOT persisted - too large, refetch is better
-        // activeScrollChapter NOT persisted - resets on page load
       }),
     }
   )

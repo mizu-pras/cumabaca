@@ -41,26 +41,26 @@ function throttle(func, wait) {
 
 export function useScrollPosition() {
   const komik = useReaderStore(state => state.komik);
-  const activeScrollChapter = useReaderStore(state => state.activeScrollChapter);
+  const activeChapter = useReaderStore(state => state.activeChapter);
   const restoringRef = useRef(false);
   const timeoutRef = useRef(null);
 
   // Save scroll position
   useEffect(() => {
-    if (!komik || !activeScrollChapter || restoringRef.current) return;
+    if (!komik || !activeChapter || restoringRef.current) return;
 
     const handleScroll = throttle(() => {
-      const scrollKey = `cumabaca_scroll_${komik}_${activeScrollChapter}`;
+      const scrollKey = `cumabaca_scroll_${komik}_${activeChapter}`;
       safeSetItem(scrollKey, window.scrollY.toString());
     }, 200);
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [komik, activeScrollChapter]);
+  }, [komik, activeChapter]);
 
   // Restore scroll position when active chapter changes
   useEffect(() => {
-    if (!komik || !activeScrollChapter) return;
+    if (!komik || !activeChapter) return;
 
     // Clear any pending restoration to prevent race conditions
     if (timeoutRef.current) {
@@ -68,7 +68,7 @@ export function useScrollPosition() {
       timeoutRef.current = null;
     }
 
-    const scrollKey = `cumabaca_scroll_${komik}_${activeScrollChapter}`;
+    const scrollKey = `cumabaca_scroll_${komik}_${activeChapter}`;
     const savedPosition = safeGetItem(scrollKey);
 
     if (savedPosition) {
@@ -92,5 +92,5 @@ export function useScrollPosition() {
         timeoutRef.current = null;
       }
     };
-  }, [activeScrollChapter, komik]);
+  }, [activeChapter, komik]);
 }

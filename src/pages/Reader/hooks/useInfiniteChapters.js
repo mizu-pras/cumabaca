@@ -13,11 +13,9 @@ export function useInfiniteChapters() {
   const nsfwEnabled = useNsfwStore(state => state.nsfwEnabled);
   const komik = useReaderStore(state => state.komik);
   const activeChapter = useReaderStore(state => state.activeChapter);
-  const activeScrollChapter = useReaderStore(state => state.activeScrollChapter);
   const loadedChapters = useReaderStore(state => state.loadedChapters);
   const upsertLoadedChapter = useReaderStore(state => state.upsertLoadedChapter);
   const setLoadingChapter = useReaderStore(state => state.setLoadingChapter);
-  const setActiveScrollChapter = useReaderStore(state => state.setActiveScrollChapter);
 
   const [error, setError] = useState(null);
   const nextChapterIdRef = useRef(null);
@@ -103,48 +101,42 @@ export function useInfiniteChapters() {
 
   // Get next chapter ID based on currently visible chapter
   const getNextChapterId = useCallback(async () => {
-    // Use activeScrollChapter for viewport-based loading
-    const currentChapter = activeScrollChapter || activeChapter;
-    if (!currentChapter) return null;
+    if (!activeChapter) return null;
 
     const response = await fetchChapters(komik, nsfwEnabled);
     const chapters = response?.data || [];
     const allChapterIds = chapters.map(item => item.chapter);
-    const currentIndex = allChapterIds.indexOf(currentChapter);
+    const currentIndex = allChapterIds.indexOf(activeChapter);
 
     if (currentIndex > 0) {
       return allChapterIds[currentIndex - 1];
     }
     return null;
-  }, [activeScrollChapter, activeChapter, komik, nsfwEnabled]);
+  }, [activeChapter, komik, nsfwEnabled]);
 
   // Get previous chapter ID based on currently visible chapter
   const getPreviousChapterId = useCallback(async () => {
-    // Use activeScrollChapter for viewport-based loading
-    const currentChapter = activeScrollChapter || activeChapter;
-    if (!currentChapter) return null;
+    if (!activeChapter) return null;
 
     const response = await fetchChapters(komik, nsfwEnabled);
     const chapters = response?.data || [];
     const allChapterIds = chapters.map(item => item.chapter);
-    const currentIndex = allChapterIds.indexOf(currentChapter);
+    const currentIndex = allChapterIds.indexOf(activeChapter);
 
     if (currentIndex < allChapterIds.length - 1) {
       return allChapterIds[currentIndex + 1];
     }
     return null;
-  }, [activeScrollChapter, activeChapter, komik, nsfwEnabled]);
+  }, [activeChapter, komik, nsfwEnabled]);
 
-  // Initialize: load active chapter and sync scroll chapter
+  // Initialize: load active chapter
   useEffect(() => {
     if (!komik || !activeChapter) return;
     if (hasInitializedRef.current) return;
 
     hasInitializedRef.current = true;
     loadChapter(activeChapter);
-    // Sync activeScrollChapter on initial load
-    setActiveScrollChapter(activeChapter);
-  }, [komik, activeChapter, loadChapter, setActiveScrollChapter]);
+  }, [komik, activeChapter, loadChapter]);
 
   // Update next chapter ID when chapters change
   useEffect(() => {
