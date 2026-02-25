@@ -17,6 +17,7 @@ export function useInfiniteChapters() {
   const loadedChapters = useReaderStore(state => state.loadedChapters);
   const upsertLoadedChapter = useReaderStore(state => state.upsertLoadedChapter);
   const setLoadingChapter = useReaderStore(state => state.setLoadingChapter);
+  const setActiveScrollChapter = useReaderStore(state => state.setActiveScrollChapter);
 
   const [error, setError] = useState(null);
   const nextChapterIdRef = useRef(null);
@@ -134,14 +135,16 @@ export function useInfiniteChapters() {
     return null;
   }, [activeScrollChapter, activeChapter, komik, nsfwEnabled]);
 
-  // Initialize: load active chapter
+  // Initialize: load active chapter and sync scroll chapter
   useEffect(() => {
     if (!komik || !activeChapter) return;
     if (hasInitializedRef.current) return;
 
     hasInitializedRef.current = true;
     loadChapter(activeChapter);
-  }, [komik, activeChapter, loadChapter]);
+    // Sync activeScrollChapter on initial load
+    setActiveScrollChapter(activeChapter);
+  }, [komik, activeChapter, loadChapter, setActiveScrollChapter]);
 
   // Update next chapter ID when chapters change
   useEffect(() => {
