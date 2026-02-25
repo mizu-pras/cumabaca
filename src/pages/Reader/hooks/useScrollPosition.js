@@ -42,8 +42,10 @@ function throttle(func, wait) {
 export function useScrollPosition() {
   const komik = useReaderStore(state => state.komik);
   const activeChapter = useReaderStore(state => state.activeChapter);
+  const loadedChapters = useReaderStore(state => state.loadedChapters);
   const restoringRef = useRef(false);
   const timeoutRef = useRef(null);
+  const previousChapterRef = useRef(null);
 
   // Save scroll position
   useEffect(() => {
@@ -71,7 +73,12 @@ export function useScrollPosition() {
     const scrollKey = `cumabaca_scroll_${komik}_${activeChapter}`;
     const savedPosition = safeGetItem(scrollKey);
 
-    if (savedPosition) {
+    // Check if this is a newly loaded chapter (infinite scroll scenario)
+    // Don't restore if we're near the bottom of the page or chapter was just added
+    const isNearBottom = window.scrollY > (document.body.scrollHeight - window.innerHeight - 500);
+    const isNewlyLoaded = previousChapterRef.current && loadedChapters.ids.length > 1;
+
+    if (savedPosition && !isNearBottom && !isNewlyLoaded) {
       const position = parseInt(savedPosition, 10);
       // Validate parsed position before using it
       if (!isNaN(position) && position >= 0) {
@@ -85,6 +92,9 @@ export function useScrollPosition() {
       }
     }
 
+    // Track previous chapter
+    previousChapterRef.current = activeChapter;
+
     // Cleanup function to clear timeout on unmount or dependency change
     return () => {
       if (timeoutRef.current) {
@@ -92,5 +102,5 @@ export function useScrollPosition() {
         timeoutRef.current = null;
       }
     };
-  }, [activeChapter, komik]);
+  }, [activeChapter, komik, loadedChapters.ids.length]);
 }
