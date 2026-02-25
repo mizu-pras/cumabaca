@@ -2,59 +2,69 @@ import { useEffect, useRef } from 'react';
 import { useReaderStore } from '@/stores/readerStore';
 
 export function useActiveChapterDetection(loadedChapterIds) {
-  const activeChapter = useReaderStore(state => state.activeChapter);
   const setActiveChapter = useReaderStore(state => state.setActiveChapter);
   const observerRef = useRef(null);
-  const activeChapterRef = useRef(activeChapter);
+  const observedElementsRef = useRef(new Set());
+  const setActiveChapterRef = useRef(setActiveChapter);
 
-  // Keep ref in sync with activeChapter
+  // Keep ref in sync
   useEffect(() => {
-    activeChapterRef.current = activeChapter;
-  }, [activeChapter]);
+    setActiveChapterRef.current = setActiveChapter;
+  }, [setActiveChapter]);
 
   useEffect(() => {
     // SSR guard
     if (typeof document === 'undefined') return;
 
-    // Don't observe if no chapters loaded
-    if (loadedChapterIds.length === 0) return;
-
     // Create Intersection Observer
     const observer = new IntersectionObserver(
       (entries) => {
         // Find all intersecting entries
-        const intersectingEntries = entries.filter(entry => entry.isIntersecting);
+        const visibleEntries = entries.filter(entry => entry.isIntersecting);
 
-        if (intersectingEntries.length > 0) {
-          // Get the chapter IDs from intersecting entries
-          const visibleChapters = intersectingEntries
-            .map(entry => entry.target.dataset.chapterId)
-            .filter(Boolean);
+        if (visibleEntries.length === 0) return;
 
-          if (visibleChapters.length > 0) {
-            // Use the first visible chapter (topmost)
-            const newActiveChapter = visibleChapters[0];
-            if (newActiveChapter !== activeChapterRef.current) {
-              setActiveChapter(newActiveChapter);
-            }
-          }
+        // Sort by position (top to bottom)
+        visibleEntries.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        // Get the topmost visible chapter
+        const topmostEntry = visibleEntries[0];
+        const newActiveChapter = topmostEntry.target.dataset.chapterId;
+
+        if (newActiveChapter && setActiveChapterRef.current) {
+          setActiveChapterRef.current(newActiveChapter);
         }
       },
       {
         root: null,
-        rootMargin: '0px',
+        rootMargin: '-10% 0px -10% 0px', // Trigger when element is in middle 80% of viewport
         threshold: 0,
       }
     );
 
     observerRef.current = observer;
 
-    // Observe all first images
-    const firstImages = document.querySelectorAll('[data-chapter-first="true"]');
-    firstImages.forEach(img => observer.observe(img));
-
     return () => {
-      observerRef.current?.disconnect();
+      observer.disconnect();
+      observedElementsRef.current.clear();
     };
-  }, [loadedChapterIds, setActiveChapter]);
+  }, []); // Empty deps - run once on mount
+
+  // Observe elements when loadedChapterIds changes
+  useEffect(() => {
+    if (loadedChapterIds.length === 0) return;
+
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(() => {
+      const firstImages = document.querySelectorAll('[data-chapter-first="true"]');
+      firstImages.forEach((img) => {
+        if (!observedElementsRef.current.has(img) && observerRef.current) {
+          observerRef.current.observe(img);
+          observedElementsRef.current.add(img);
+        }
+      });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [loadedChapterIds]);
 }
