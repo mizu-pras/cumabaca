@@ -3,199 +3,183 @@ import { fetchChapterData, fetchChapters } from '@/lib/data-sources';
 import { useNsfwStore } from '@/stores/nsfwStore';
 import { useReaderStore } from '@/stores/readerStore';
 
+/**
+ * Manages infinite scroll chapter loading with scroll-based trigger
+ * - Loads active chapter on mount
+ * - Loads next chapter only when user scrolls near bottom
+ * - Loads previous chapters on demand (for navigation)
+ */
 export function useInfiniteChapters() {
   const nsfwEnabled = useNsfwStore(state => state.nsfwEnabled);
   const komik = useReaderStore(state => state.komik);
   const activeChapter = useReaderStore(state => state.activeChapter);
-  const loadedChapterIds = useReaderStore(state => state.loadedChapterIds);
-  const addLoadedChapterId = useReaderStore(state => state.addLoadedChapterId);
-  const removeLoadedChapterId = useReaderStore(state => state.removeLoadedChapterId);
+  const activeScrollChapter = useReaderStore(state => state.activeScrollChapter);
+  const loadedChapters = useReaderStore(state => state.loadedChapters);
+  const upsertLoadedChapter = useReaderStore(state => state.upsertLoadedChapter);
+  const setLoadingChapter = useReaderStore(state => state.setLoadingChapter);
 
-  const [loadedChapters, setLoadedChapters] = useState({ entities: {}, ids: [] });
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const nextChapterIdRef = useRef(null);
+  const hasInitializedRef = useRef(false);
+  const isLoadingRef = useRef(false);
 
-  // Track pending loadChapter calls for cleanup
-  const pendingLoadsRef = useRef(new Set());
+  // Fetch chapter URL helper
+  const getChapterUrl = useCallback(async (chapterId) => {
+    const response = await fetchChapters(komik, nsfwEnabled);
+    const chapters = response?.data || [];
+    return chapters.find(item => item.chapter === chapterId)?.url;
+  }, [komik, nsfwEnabled]);
 
-  // Load a single chapter with abort support
-  const loadChapter = useCallback(async (chapterId, abortSignal) => {
-    if (loadedChapterIds.includes(chapterId)) return;
-    if (abortSignal?.aborted) return;
+  // Load single chapter
+  const loadChapter = useCallback(async (chapterId) => {
+    // Already loaded with data
+    if (loadedChapters.entities[chapterId]?.loaded) {
+      return;
+    }
 
-    const loadKey = `${chapterId}-${Date.now()}`;
-    pendingLoadsRef.current.add(loadKey);
+    // Already loading
+    if (loadedChapters.entities[chapterId]?.loading || isLoadingRef.current) {
+      return;
+    }
+
+    isLoadingRef.current = true;
+    setLoadingChapter(chapterId, true);
+    setError(null);
+
+    // Mark as loading in state
+    upsertLoadedChapter(chapterId, {
+      id: chapterId,
+      loading: true,
+      loaded: false,
+      error: null,
+      data: [],
+      title: ''
+    });
 
     try {
-      // Get chapter URL from chapter list
-      const response = await fetchChapters(komik, nsfwEnabled);
-      if (abortSignal?.aborted) return;
-
-      const chapters = response?.data || [];
-      const chapterUrl = chapters.find(item => item.chapter === chapterId)?.url;
-
+      const chapterUrl = await getChapterUrl(chapterId);
       if (!chapterUrl) {
         throw new Error(`Chapter URL not found for ${chapterId}`);
       }
 
-      // Fetch chapter data
       const dataResponse = await fetchChapterData(chapterUrl, nsfwEnabled);
-      if (abortSignal?.aborted) return;
 
-      // Add to loaded chapters
-      setLoadedChapters(prev => ({
-        entities: {
-          ...prev.entities,
-          [chapterId]: {
-            id: chapterId,
-            data: dataResponse?.data || [],
-            title: dataResponse?.title || '',
-            loaded: true,
-            error: null,
-          }
-        },
-        ids: [...prev.ids, chapterId]
-      }));
-
-      addLoadedChapterId(chapterId);
+      upsertLoadedChapter(chapterId, {
+        id: chapterId,
+        loading: false,
+        loaded: true,
+        error: null,
+        data: dataResponse?.data || [],
+        title: dataResponse?.title || ''
+      });
     } catch (err) {
-      if (abortSignal?.aborted) return;
-      setLoadedChapters(prev => ({
-        entities: {
-          ...prev.entities,
-          [chapterId]: {
-            id: chapterId,
-            data: [],
-            title: '',
-            loaded: false,
-            error: err.message,
-          }
-        },
-        ids: prev.ids.includes(chapterId) ? prev.ids : [...prev.ids, chapterId]
-      }));
+      setError(err.message);
+      upsertLoadedChapter(chapterId, {
+        id: chapterId,
+        loading: false,
+        loaded: false,
+        error: err.message,
+        data: [],
+        title: ''
+      });
     } finally {
-      pendingLoadsRef.current.delete(loadKey);
+      setLoadingChapter(chapterId, false);
+      isLoadingRef.current = false;
     }
-  }, [komik, nsfwEnabled, loadedChapterIds, addLoadedChapterId]);
+  }, [loadedChapters, getChapterUrl, nsfwEnabled, upsertLoadedChapter, setLoadingChapter]);
 
-  // Memory management: remove old chapters (with abort support)
-  useEffect(() => {
-    if (loadedChapterIds.length <= 10) return;
-
-    let aborted = false;
-
-    const cleanup = async () => {
-      try {
-        const response = await fetchChapters(komik, nsfwEnabled);
-        if (aborted) return;
-
-        const chapters = response?.data || [];
-        const allChapterIds = chapters.map(item => item.chapter);
-        const activeIndex = allChapterIds.indexOf(activeChapter);
-        const keepRange = 5;
-
-        const toRemove = loadedChapterIds.filter(id => {
-          const index = allChapterIds.indexOf(id);
-          return index < activeIndex - keepRange;
-        });
-
-        if (toRemove.length > 0 && !aborted) {
-          toRemove.forEach(id => {
-            removeLoadedChapterId(id);
-            setLoadedChapters(prev => {
-              const newEntities = { ...prev.entities };
-              delete newEntities[id];
-              return {
-                entities: newEntities,
-                ids: prev.ids.filter(x => x !== id)
-              };
-            });
-          });
-        }
-      } catch (err) {
-        console.error('Memory cleanup failed:', err);
-      }
-    };
-
-    cleanup();
-
-    return () => { aborted = true; };
-  }, [activeChapter, loadedChapterIds, komik, nsfwEnabled, removeLoadedChapterId]);
-
-  // Load active chapter and preload next chapters (with abort support)
-  useEffect(() => {
-    if (!komik || !activeChapter) return;
-
-    let aborted = false;
-    const abortController = new AbortController();
-
-    setIsLoading(true);
-    setError(null);
-
-    // Consolidated fetch and preload logic
-    const loadAndPreload = async () => {
-      try {
-        // Fetch once for both active and preload chapters
-        const response = await fetchChapters(komik, nsfwEnabled);
-        if (aborted) return;
-
-        const chapters = response?.data || [];
-        const allChapterIds = chapters.map(item => item.chapter);
-        const currentIndex = allChapterIds.indexOf(activeChapter);
-
-        // Load active chapter
-        await loadChapter(activeChapter, abortController.signal);
-        if (aborted) return;
-
-        // Preload next 3 chapters (descending order)
-        const toPreload = [];
-        for (let i = 1; i <= 3; i++) {
-          const nextId = allChapterIds[currentIndex - i];
-          if (nextId && !loadedChapterIds.includes(nextId)) {
-            toPreload.push(nextId);
-          }
-        }
-
-        // Load preloads in parallel
-        await Promise.all(toPreload.map(id => loadChapter(id, abortController.signal)));
-      } catch (err) {
-        if (!aborted) {
-          console.error('Load and preload failed:', err);
-        }
-      } finally {
-        if (!aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadAndPreload();
-
-    return () => {
-      aborted = true;
-      abortController.abort();
-    };
-  }, [komik, activeChapter, nsfwEnabled, loadedChapterIds, loadChapter]);
+  // Load multiple chapters (for preload)
+  const loadChapters = useCallback(async (chapterIds) => {
+    for (const chapterId of chapterIds) {
+      await loadChapter(chapterId);
+    }
+  }, [loadChapter]);
 
   // Retry failed chapter
   const retryChapter = useCallback((chapterId) => {
-    // Remove from state and reload
-    setLoadedChapters(prev => {
-      const newEntities = { ...prev.entities };
-      delete newEntities[chapterId];
-      return {
-        entities: newEntities,
-        ids: prev.ids.filter(x => x !== chapterId)
-      };
-    });
     loadChapter(chapterId);
   }, [loadChapter]);
+
+  // Get next chapter ID based on currently visible chapter
+  const getNextChapterId = useCallback(async () => {
+    // Use activeScrollChapter for viewport-based loading
+    const currentChapter = activeScrollChapter || activeChapter;
+    if (!currentChapter) return null;
+
+    const response = await fetchChapters(komik, nsfwEnabled);
+    const chapters = response?.data || [];
+    const allChapterIds = chapters.map(item => item.chapter);
+    const currentIndex = allChapterIds.indexOf(currentChapter);
+
+    if (currentIndex > 0) {
+      return allChapterIds[currentIndex - 1];
+    }
+    return null;
+  }, [activeScrollChapter, activeChapter, komik, nsfwEnabled]);
+
+  // Get previous chapter ID based on currently visible chapter
+  const getPreviousChapterId = useCallback(async () => {
+    // Use activeScrollChapter for viewport-based loading
+    const currentChapter = activeScrollChapter || activeChapter;
+    if (!currentChapter) return null;
+
+    const response = await fetchChapters(komik, nsfwEnabled);
+    const chapters = response?.data || [];
+    const allChapterIds = chapters.map(item => item.chapter);
+    const currentIndex = allChapterIds.indexOf(currentChapter);
+
+    if (currentIndex < allChapterIds.length - 1) {
+      return allChapterIds[currentIndex + 1];
+    }
+    return null;
+  }, [activeScrollChapter, activeChapter, komik, nsfwEnabled]);
+
+  // Initialize: load active chapter
+  useEffect(() => {
+    if (!komik || !activeChapter) return;
+    if (hasInitializedRef.current) return;
+
+    hasInitializedRef.current = true;
+    loadChapter(activeChapter);
+  }, [komik, activeChapter, loadChapter]);
+
+  // Update next chapter ID when chapters change
+  useEffect(() => {
+    const updateNextChapter = async () => {
+      const nextId = await getNextChapterId();
+      nextChapterIdRef.current = nextId;
+    };
+
+    updateNextChapter();
+  }, [loadedChapters.ids, getNextChapterId]);
+
+  // Handle sentinel intersection - use ref to avoid dependency issues
+  const handleSentinelIntersectionRef = useRef(null);
+  handleSentinelIntersectionRef.current = () => {
+    if (!nextChapterIdRef.current || isLoadingRef.current) return;
+
+    const nextId = nextChapterIdRef.current;
+    if (loadedChapters.entities[nextId]?.loaded) return;
+
+    // Defer to next tick to avoid React DOM conflicts
+    requestAnimationFrame(() => {
+      loadChapter(nextId);
+    });
+  };
+
+  // Stable callback that uses ref
+  const handleSentinelIntersection = useCallback(() => {
+    handleSentinelIntersectionRef.current?.();
+  }, []);
 
   return {
     loadedChapters,
     loadChapter,
+    loadChapters,
     retryChapter,
-    isLoading,
-    error
+    error,
+    getNextChapterId,
+    getPreviousChapterId,
+    handleSentinelIntersection
   };
 }
