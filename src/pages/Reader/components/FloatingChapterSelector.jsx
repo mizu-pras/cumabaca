@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useReaderStore } from '@/stores/readerStore';
 import { useChapterList } from '../hooks/useChapterList';
+import { useChapterNavigation } from '../hooks/useChapterNavigation';
 
 export function FloatingChapterSelector() {
   const [visible, setVisible] = useState(false);
   const [showTrigger, setShowTrigger] = useState(false);
-  const { ids, activeChapter, setActiveChapter, nextChapter, prevChapter } = useReaderStore();
+  const { ids } = useChapterList();
+  const { activeChapter, setActiveChapter } = useReaderStore();
+  const { nextChapter, prevChapter } = useChapterNavigation();
 
   useEffect(() => {
     const handleScroll = () => {

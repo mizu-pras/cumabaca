@@ -7,22 +7,24 @@ import { ChapterContent } from './components/ChapterContent';
 import { NavigationControls } from './components/NavigationControls';
 import { BackToTop } from '@/components/BackToTop/BackToTop';
 import { FloatingChapterSelector } from './components/FloatingChapterSelector';
-import { useChapterPreload } from './hooks/useChapterPreload';
+// import { useChapterPreload } from './hooks/useChapterPreload'; // Disabled due to infinite loop
 
 function ReaderContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { komik, setKomik, activeChapter } = useReaderStore();
 
-  // Sync URL -> store on mount
+  // Sync URL -> store on mount and URL changes
+  // Note: komik is intentionally NOT in deps to avoid infinite loop with useSyncExternalStore
   useEffect(() => {
     const urlFromQuery = searchParams.get('url');
     if (urlFromQuery && urlFromQuery !== komik) {
       setKomik(urlFromQuery);
     }
-  }, [searchParams, komik, setKomik]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setKomik]);
 
   // Enable preloading
-  useChapterPreload();
+  // useChapterPreload(); // Disabled due to infinite loop
 
   return (
     <>

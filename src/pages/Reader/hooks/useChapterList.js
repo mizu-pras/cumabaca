@@ -6,25 +6,19 @@ import { useReaderStore } from '@/stores/readerStore';
 export function useChapterList() {
   const nsfwEnabled = useNsfwStore(state => state.nsfwEnabled);
   const komik = useReaderStore(state => state.komik);
-  const setChapters = useReaderStore(state => state.setChapters);
 
   if (!komik) {
-    return { entities: {}, ids: [], isLoading: true };
+    return { entities: {}, ids: [] };
   }
 
-  try {
-    const data = use(getChaptersResource(komik, nsfwEnabled));
-    const entities = data.data?.reduce((acc, item) => {
-      acc[item.chapter] = item;
-      return acc;
-    }, {}) || {};
-    const ids = data.data?.map(item => item.chapter) || [];
+  // use() cannot be inside try/catch in React 19
+  // Suspense handles pending states, ErrorBoundary handles errors
+  const data = use(getChaptersResource(komik, nsfwEnabled));
+  const entities = data.data?.reduce((acc, item) => {
+    acc[item.chapter] = item;
+    return acc;
+  }, {}) || {};
+  const ids = data.data?.map(item => item.chapter) || [];
 
-    // Update store with fetched data
-    setChapters({ entities, ids });
-
-    return { entities, ids, isLoading: false };
-  } catch (promise) {
-    return { entities: {}, ids: [], isLoading: true };
-  }
+  return { entities, ids };
 }

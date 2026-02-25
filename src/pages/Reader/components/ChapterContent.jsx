@@ -1,14 +1,9 @@
 import { useChapterData } from '../hooks/useChapterData';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner/LoadingSpinner';
-import { ErrorMessage } from '@/components/ErrorMessage/ErrorMessage';
 
 function ChapterContentInner() {
-  const { data, title, isLoading } = useChapterData();
-
-  if (isLoading) {
-    return <LoadingSpinner message="Loading images..." />;
-  }
+  const { data, title } = useChapterData();
 
   return (
     <div id="render" className="flex flex-col items-center mb-16">

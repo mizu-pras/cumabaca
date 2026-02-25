@@ -1,7 +1,7 @@
-import { useReaderStore } from '@/stores/readerStore';
+import { useChapterNavigation } from '../hooks/useChapterNavigation';
 
 export function NavigationControls({ position = 'top' }) {
-  const { nextChapter, prevChapter } = useReaderStore();
+  const { nextChapter, prevChapter } = useChapterNavigation();
 
   return (
     <div className="px-4 py-1 my-4 flex items-center justify-between">

@@ -18,7 +18,7 @@ function validateAndFormatURL(url) {
 
 export function ChapterForm() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { komik, setKomik, isLoadingChapters } = useReaderStore();
+  const { komik, setKomik } = useReaderStore();
   const nsfwEnabled = useNsfwStore(state => state.nsfwEnabled);
 
   const handleSubmit = (e) => {
@@ -40,21 +40,18 @@ export function ChapterForm() {
           name="url"
           placeholder="url komik"
           defaultValue={komik || ''}
-          disabled={isLoadingChapters}
-          className="w-[250px] px-4 py-2 border-b border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-gray-500 transition-colors"
+          className="w-[250px] px-4 py-2 border-b border-gray-300 focus:outline-none focus:border-gray-500 transition-colors"
         />
       </div>
       <button
         type="submit"
-        disabled={isLoadingChapters}
-        className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
       >
-        {isLoadingChapters ? 'Loading...' : 'Kirim'}
+        Kirim
       </button>
       <button
         type="reset"
-        disabled={isLoadingChapters}
-        className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
       >
         Hapus
       </button>
