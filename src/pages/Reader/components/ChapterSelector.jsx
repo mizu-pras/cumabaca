@@ -3,7 +3,13 @@ import { useChapterList } from '../hooks/useChapterList';
 
 export function ChapterSelector() {
   const { ids, isLoading } = useChapterList();
-  const { activeChapter, activeScrollChapter, setActiveChapter } = useReaderStore();
+  const { activeScrollChapter, activeChapter, setActiveChapter, clearAndLoadChapter } = useReaderStore();
+
+  const handleChange = (e) => {
+    const selectedChapter = e.target.value;
+    // Use clearAndLoadChapter for explicit navigation
+    clearAndLoadChapter(selectedChapter);
+  };
 
   return (
     <div className="px-4 py-1 mt-4 flex items-center gap-2">
@@ -12,7 +18,7 @@ export function ChapterSelector() {
         id="chapter"
         name="chapter"
         value={activeScrollChapter || activeChapter || ''}
-        onChange={(e) => setActiveChapter(e.target.value)}
+        onChange={handleChange}
         disabled={isLoading || ids.length === 0}
         className="px-4 py-2 border-b border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-gray-500 transition-colors"
       >
