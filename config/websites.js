@@ -13,6 +13,7 @@ module.exports = {
             lang: 'id',
             useBrowser: true,
             waitUntil: 'networkidle0',
+            comics: 'https://v1.komikcast.fit/comics?sort=popularity&order=desc',
         },
         sektedoujin: {
             name: 'Sektedoujin',
