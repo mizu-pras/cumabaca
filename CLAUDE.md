@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit, sektedoujin.cc) and provides a clean, distraction-free reading experience. It's a full-stack JavaScript application with no frontend framework dependencies. The site uses a multi-page architecture with separate pages for the comic reader (`/`), about page (`/about.html`), cached comics (`/cached.html`), NSFW settings (`/secret.html`), and supported websites (`/websites.html`).
+Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit, sektedoujin.cc) and provides a clean, distraction-free reading experience.
 
 ## Workflow Orchestration
 
