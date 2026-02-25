@@ -7,14 +7,12 @@ import { ChapterContent } from './components/ChapterContent';
 import { NavigationControls } from './components/NavigationControls';
 import { BackToTop } from '@/components/BackToTop/BackToTop';
 import { FloatingChapterSelector } from './components/FloatingChapterSelector';
-// import { useChapterPreload } from './hooks/useChapterPreload'; // Disabled due to infinite loop
 
 function ReaderContent() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { komik, setKomik, activeChapter } = useReaderStore();
+  const { komik, setKomik, activeChapter, activeScrollChapter, setActiveScrollChapter, loadedChapterIds } = useReaderStore();
 
   // Sync URL -> store on mount and URL changes
-  // Note: komik is intentionally NOT in deps to avoid infinite loop with useSyncExternalStore
   useEffect(() => {
     const urlFromQuery = searchParams.get('url');
     if (urlFromQuery && urlFromQuery !== komik) {
@@ -23,8 +21,17 @@ function ReaderContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setKomik]);
 
-  // Enable preloading
-  // useChapterPreload(); // Disabled due to infinite loop
+  // Sync activeScrollChapter -> activeChapter for selector
+  useEffect(() => {
+    if (activeChapter !== activeScrollChapter && activeScrollChapter) {
+      // Note: we don't set activeChapter here to avoid loop
+      // The selector should read from activeScrollChapter instead
+      // This will be handled in Task 9
+    }
+  }, [activeChapter, activeScrollChapter]);
+
+  // Update readerStore to use activeScrollChapter for selector
+  // This requires ChapterSelector to use activeScrollChapter instead of activeChapter
 
   return (
     <>
