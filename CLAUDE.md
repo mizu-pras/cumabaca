@@ -108,6 +108,11 @@ cumabaca/
 │   ├── database.js          # MongoDB connection with indexes
 │   └── websites.js          # Website scraper configuration
 │
+├── controllers/              # Route controllers (business logic)
+│   ├── komikController.js   # Comic scraping controller
+│   ├── cacheController.js   # Cache management controller
+│   └── imageProxyController.js  # Image proxy controller
+│
 ├── routes/                   # Express route handlers
 │   ├── index.js             # Route index
 │   └── komik.js             # Comic scraping routes with caching
@@ -160,7 +165,10 @@ The backend is a standard Express.js application with modular scraper architectu
 **Key files:**
 
 - `app.js` - Express app configuration
-- `routes/komik.js` - Comic scraping routes with caching middleware and image proxy
+- `routes/komik.js` - Route definitions (thin layer, delegates to controllers)
+- `controllers/komikController.js` - Comic scraping business logic
+- `controllers/cacheController.js` - Cache management and statistics
+- `controllers/imageProxyController.js` - Image proxy for CORS/hotlink bypass
 - `scrapers/index.js` - Scraper registry/factory for domain-based scraper selection
 - `scrapers/komiku.js` - Komiku scraper implementation
 - `scrapers/komikcast.js` - Komikcast scraper implementation

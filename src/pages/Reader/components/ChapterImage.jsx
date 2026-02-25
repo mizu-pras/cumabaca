@@ -1,20 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { ImageSkeleton } from '@/components/ImageSkeleton/ImageSkeleton';
 
 export function ChapterImage({ src, alt, chapterId, isFirst, className }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const imgRef = useRef(null);
 
   useEffect(() => {
-    const img = imgRef.current;
-    if (!img) return;
+    // Reset state when src changes
+    setIsLoaded(false);
+    setHasError(false);
 
-    // Check if image is already complete (cached)
-    if (img.complete) {
-      setIsLoaded(true);
-      return;
-    }
+    // Create a new image to test loading
+    const testImg = new Image();
 
     const handleLoad = () => {
       setIsLoaded(true);
@@ -25,12 +22,18 @@ export function ChapterImage({ src, alt, chapterId, isFirst, className }) {
       setIsLoaded(true);
     };
 
-    img.addEventListener('load', handleLoad);
-    img.addEventListener('error', handleError);
+    testImg.onload = handleLoad;
+    testImg.onerror = handleError;
+    testImg.src = src;
+
+    // Check if already loaded (cached) - AFTER setting src
+    if (testImg.complete) {
+      setIsLoaded(true);
+    }
 
     return () => {
-      img.removeEventListener('load', handleLoad);
-      img.removeEventListener('error', handleError);
+      testImg.onload = null;
+      testImg.onerror = null;
     };
   }, [src]);
 
@@ -42,15 +45,17 @@ export function ChapterImage({ src, alt, chapterId, isFirst, className }) {
           Failed to load image
         </div>
       ) : (
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          className={`${className} ${isLoaded ? 'block' : 'hidden'}`}
-          loading="lazy"
-          data-chapter-first={isFirst}
-          data-chapter-id={chapterId}
-        />
+        <>
+          <img
+            src={src}
+            alt={alt}
+            className={className}
+            loading="lazy"
+            data-chapter-first={isFirst}
+            data-chapter-id={chapterId}
+            style={{ display: isLoaded ? 'block' : 'none' }}
+          />
+        </>
       )}
     </div>
   );
