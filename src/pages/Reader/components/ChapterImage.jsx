@@ -7,7 +7,7 @@ export function ChapterImage({ src, alt, chapterId, isFirst, className }) {
       loading="lazy"
       data-chapter-first={isFirst}
       data-chapter-id={chapterId}
-      style={{ backgroundColor: '#e5e7eb', minHeight: '50vh' }}
+      style={{ backgroundColor: '#e5e7eb', minHeight: '300px' }}
     />
   );
 }
