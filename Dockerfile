@@ -106,6 +106,7 @@ COPY --chown=appuser:appuser --from=builder /app/dist-react ./dist-react
 
 # Copy application files with proper ownership
 COPY --chown=appuser:appuser routes ./routes
+COPY --chown=appuser:appuser controllers ./controllers
 COPY --chown=appuser:appuser scrapers ./scrapers
 COPY --chown=appuser:appuser config ./config
 COPY --chown=appuser:appuser utils ./utils

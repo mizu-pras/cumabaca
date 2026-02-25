@@ -38,6 +38,7 @@ services:
             # Mount source code for hot-reload
             # :z flag for SELinux compatibility (Podman on Fedora)
             - ./routes:/app/routes:z
+            - ./controllers:/app/controllers:z
             - ./scrapers:/app/scrapers:z
             - ./config:/app/config:z
             - ./utils:/app/utils:z
