@@ -8,11 +8,16 @@ export const useReaderStore = create(
       komik: null,
       activeChapter: null,
 
-      // Infinite scroll state
-      loadedChapterIds: [],
+      // Infinite scroll state - single source of truth for loaded chapters
+      // NOT persisted (images are large, refetch on page load is better)
+      loadedChapters: { entities: {}, ids: [] },
+
       // activeScrollChapter: NOT persisted (resets on page load)
       // Used for viewport tracking only - should always start fresh on each session
       activeScrollChapter: null,
+
+      // Loading state
+      loadingChapters: {}, // { chapterId: boolean }
 
       // Preload state (kept for future use)
       preloadedChapter: null,
@@ -22,6 +27,45 @@ export const useReaderStore = create(
       setKomik: (url) => set({ komik: url }),
       setActiveChapter: (id) => set({ activeChapter: id }),
       setActiveScrollChapter: (id) => set({ activeScrollChapter: id }),
+      clearAndLoadChapter: (chapterId) => set((state) => ({
+        activeChapter: chapterId,
+        activeScrollChapter: chapterId,
+        loadedChapters: { entities: {}, ids: [] },
+        loadingChapters: { [chapterId]: true }
+      })),
+
+      // Chapter data management
+      setLoadedChapters: (chapters) => set({ loadedChapters: chapters }),
+      upsertLoadedChapter: (chapterId, data) => set((state) => {
+        const exists = state.loadedChapters.entities[chapterId];
+        return {
+          loadedChapters: {
+            entities: {
+              ...state.loadedChapters.entities,
+              [chapterId]: { ...state.loadedChapters.entities[chapterId], ...data }
+            },
+            ids: exists ? state.loadedChapters.ids : [...state.loadedChapters.ids, chapterId]
+          }
+        };
+      }),
+      removeLoadedChapter: (chapterId) => set((state) => {
+        const newEntities = { ...state.loadedChapters.entities };
+        delete newEntities[chapterId];
+        return {
+          loadedChapters: {
+            entities: newEntities,
+            ids: state.loadedChapters.ids.filter(id => id !== chapterId)
+          }
+        };
+      }),
+      clearLoadedChapters: () => set({ loadedChapters: { entities: {}, ids: [] } }),
+
+      // Loading state management
+      setLoadingChapter: (chapterId, isLoading) => set((state) => ({
+        loadingChapters: { ...state.loadingChapters, [chapterId]: isLoading }
+      })),
+
+      // Legacy (kept for compatibility)
       setLoadedChapterIds: (ids) => set({ loadedChapterIds: ids }),
       addLoadedChapterId: (id) => set((state) => ({
         loadedChapterIds: state.loadedChapterIds.includes(id)
@@ -31,6 +75,7 @@ export const useReaderStore = create(
       removeLoadedChapterId: (id) => set((state) => ({
         loadedChapterIds: state.loadedChapterIds.filter(chapterId => chapterId !== id)
       })),
+
       setPreloaded: (chapter, data) => set({ preloadedChapter: chapter, preloadedData: data }),
       clearPreload: () => set({ preloadedChapter: null, preloadedData: null }),
     }),
@@ -39,8 +84,8 @@ export const useReaderStore = create(
       partialize: (state) => ({
         komik: state.komik,
         activeChapter: state.activeChapter,
-        // loadedChapterIds persisted to avoid re-fetch after refresh
-        loadedChapterIds: state.loadedChapterIds,
+        // loadedChapters NOT persisted - too large, refetch is better
+        // activeScrollChapter NOT persisted - resets on page load
       }),
     }
   )
