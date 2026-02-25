@@ -1,33 +1,28 @@
-import { useChapterNavigation } from '../hooks/useChapterNavigation';
-import { useChapterList } from '../hooks/useChapterList';
 import { useReaderStore } from '@/stores/readerStore';
+import { useChapterList } from '../hooks/useChapterList';
 
 export function NavigationControls({ position = 'top' }) {
-  const { hasNext, hasPrev } = useChapterNavigation();
   const { ids } = useChapterList();
-  const activeChapter = useReaderStore(state => state.activeChapter);
+  const { activeScrollChapter, activeChapter, clearAndLoadChapter } = useReaderStore();
+
+  // Use currently visible chapter for navigation
+  const currentChapter = activeScrollChapter || activeChapter;
+  const currentIndex = ids.indexOf(currentChapter);
+
+  const hasNext = currentIndex > 0;
+  const hasPrev = currentIndex < ids.length - 1;
 
   const handleNext = () => {
-    if (!hasNext) return;
-    const currentIndex = ids.indexOf(activeChapter);
-    if (currentIndex > 0) {
+    if (hasNext) {
       const nextChapterId = ids[currentIndex - 1];
-      const nextChapterElement = document.querySelector(
-        `[data-chapter-first="true"][data-chapter-id="${nextChapterId}"]`
-      );
-      nextChapterElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      clearAndLoadChapter(nextChapterId);
     }
   };
 
   const handlePrev = () => {
-    if (!hasPrev) return;
-    const currentIndex = ids.indexOf(activeChapter);
-    if (currentIndex < ids.length - 1) {
+    if (hasPrev) {
       const prevChapterId = ids[currentIndex + 1];
-      const prevChapterElement = document.querySelector(
-        `[data-chapter-first="true"][data-chapter-id="${prevChapterId}"]`
-      );
-      prevChapterElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      clearAndLoadChapter(prevChapterId);
     }
   };
 
