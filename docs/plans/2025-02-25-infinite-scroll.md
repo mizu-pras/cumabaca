@@ -404,7 +404,7 @@ import { ChevronDown, AlertCircle } from 'lucide-react';
 
 export function ChapterSeparator({ chapter, title, error, onRetry }) {
   return (
-    <div className="w-full max-w-[1000px] mx-auto my-4 px-4">
+    <div className="w-full max-w-250 mx-auto my-4 px-4">
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -510,7 +510,7 @@ export function ChapterContent() {
                     key={imgIndex}
                     src={imgUrl}
                     alt={`Page ${imgIndex + 1}`}
-                    className="w-full max-w-[1000px]"
+                    className="w-full max-w-250"
                     loading="lazy"
                     data-chapter-first={imgIndex === 0}
                     data-chapter-id={chapterId}

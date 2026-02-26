@@ -814,7 +814,7 @@ function ChapterContentInner() {
             key={index}
             src={imgUrl}
             alt={`Page ${index + 1}`}
-            className="w-full max-w-[1000px]"
+            className="w-full max-w-250"
             loading="lazy"
           />
         ))}

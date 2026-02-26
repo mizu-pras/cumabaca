@@ -89,7 +89,7 @@ export function ChapterContent() {
                     alt={`Page ${imgIndex + 1}`}
                     chapterId={chapterId}
                     isFirst={imgIndex === 0}
-                    className="w-full max-w-[1000px]"
+                    className="w-full max-w-250"
                   />
                 ))}
               </div>
