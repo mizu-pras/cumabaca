@@ -84,49 +84,45 @@ function KomikDetail() {
       </div>
 
       {/* Komik Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         {/* Cover Image */}
         {komik.cover_image && (
-          <div className="lg:col-span-1">
-            <Card>
-              <CardContent className="p-4">
-                <img
-                  src={komik.cover_image}
-                  alt={komik.title}
-                  className="w-full rounded-lg object-cover aspect-[2/3]"
-                />
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="w-fit max-w-[280px] flex-shrink-0">
+            <CardContent className="p-3">
+              <img
+                src={komik.cover_image}
+                alt={komik.title}
+                className="w-full max-w-[260px] rounded-lg object-cover aspect-[2/3]"
+              />
+            </CardContent>
+          </Card>
         )}
 
         {/* Synopsis */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Synopsis</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground leading-relaxed">
-                {komik.synopsis || 'No synopsis available.'}
-              </p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Created:</span>
-                  <span className="ml-2 text-muted-foreground">
-                    {komik.created_at ? new Date(komik.created_at).toLocaleDateString() : '-'}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Last Updated:</span>
-                  <span className="ml-2 text-muted-foreground">
-                    {komik.updated_at ? new Date(komik.updated_at).toLocaleDateString() : '-'}
-                  </span>
-                </div>
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Synopsis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground leading-relaxed">
+              {komik.synopsis || 'No synopsis available.'}
+            </p>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Created:</span>
+                <span className="ml-2 text-muted-foreground">
+                  {komik.created_at ? new Date(komik.created_at).toLocaleDateString() : '-'}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div>
+                <span className="font-medium">Last Updated:</span>
+                <span className="ml-2 text-muted-foreground">
+                  {komik.updated_at ? new Date(komik.updated_at).toLocaleDateString() : '-'}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Website Sources Section */}
