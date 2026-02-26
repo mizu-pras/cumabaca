@@ -7,6 +7,8 @@ import {
   getCoreRowModel,
   flexRender,
 } from '@tanstack/react-table';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import AddWebsiteModal from './AddWebsiteModal';
 import EditWebsiteModal from './EditWebsiteModal';
 
@@ -83,16 +85,16 @@ function WebsiteSources({ komikId, komikTitle }) {
         header: 'Website',
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Globe size={18} className="text-gray-600" />
+            <div className="p-2 bg-muted rounded-lg">
+              <Globe size={18} className="text-muted-foreground" />
             </div>
             <div>
-              <div className="font-medium text-sm text-gray-900">{row.original.website_name}</div>
+              <div className="font-medium text-sm">{row.original.website_name}</div>
               <a
                 href={row.original.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                className="text-xs text-primary hover:underline flex items-center gap-1"
               >
                 Visit site <ExternalLink size={12} />
               </a>
@@ -109,7 +111,7 @@ function WebsiteSources({ komikId, komikTitle }) {
               href={getValue()}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
             >
               <span className="truncate block">{getValue()}</span>
               <ExternalLink size={14} className="shrink-0" />
@@ -121,14 +123,14 @@ function WebsiteSources({ komikId, komikTitle }) {
         accessorKey: 'total_chapters',
         header: 'Total Chapters',
         cell: ({ getValue }) => (
-          <span className="text-sm text-gray-600">{getValue() || 0}</span>
+          <span className="text-sm text-muted-foreground">{getValue() || 0}</span>
         ),
       },
       {
         accessorKey: 'last_checked_at',
         header: 'Last Checked',
         cell: ({ getValue }) => (
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             {getValue() ? new Date(getValue()).toLocaleDateString() : 'Never'}
           </span>
         ),
@@ -138,20 +140,21 @@ function WebsiteSources({ komikId, komikTitle }) {
         header: 'Actions',
         cell: ({ row }) => (
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleEdit(row.original)}
-              className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
-              title="Edit website source"
             >
               <Edit2 size={16} />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleDelete(row.original.id)}
-              className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
-              title="Remove website source"
+              className="text-destructive hover:text-destructive"
             >
               <Trash2 size={16} />
-            </button>
+            </Button>
           </div>
         ),
       },
@@ -166,46 +169,44 @@ function WebsiteSources({ komikId, komikTitle }) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Website Sources</h2>
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={20} />
-          Add Website Source
-        </button>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
-          {error}
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Website Sources</CardTitle>
+          <Button onClick={handleAdd} size="sm" className="gap-2">
+            <Plus size={16} />
+            Add Source
+          </Button>
         </div>
-      )}
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg mb-4">
+            {error}
+          </div>
+        )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12 text-gray-500">
-          <Loader2 className="animate-spin mr-2" size={20} />
-          Loading website sources...
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {websites.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Globe size={48} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-lg font-medium">No website sources added yet</p>
-              <p className="text-sm mt-1">Add a website source to track where this komik is available</p>
-            </div>
-          ) : (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="animate-spin mr-2 text-muted-foreground" />
+            <span className="text-muted-foreground">Loading website sources...</span>
+          </div>
+        ) : websites.length === 0 ? (
+          <div className="text-center py-12">
+            <Globe size={48} className="mx-auto mb-3 text-muted-foreground/50" />
+            <p className="text-lg font-medium">No website sources added yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Add a website source to track where this komik is available</p>
+          </div>
+        ) : (
+          <div className="rounded-md border">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-muted/50">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                        className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground"
                       >
                         {header.isPlaceholder
                           ? null
@@ -216,11 +217,11 @@ function WebsiteSources({ komikId, komikTitle }) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y">
                 {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
+                  <tr key={row.id} className="hover:bg-muted/50">
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-6 py-4">
+                      <td key={cell.id} className="px-4 py-3 text-sm">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -228,33 +229,33 @@ function WebsiteSources({ komikId, komikTitle }) {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Add Website Modal */}
-      {showAddModal && (
-        <AddWebsiteModal
-          komikId={komikId}
-          komikTitle={komikTitle}
-          availableWebsites={availableWebsites}
-          onClose={() => setShowAddModal(false)}
-          onSuccess={handleAddSuccess}
-        />
-      )}
+        {/* Add Website Modal */}
+        {showAddModal && (
+          <AddWebsiteModal
+            komikId={komikId}
+            komikTitle={komikTitle}
+            availableWebsites={availableWebsites}
+            onClose={() => setShowAddModal(false)}
+            onSuccess={handleAddSuccess}
+          />
+        )}
 
-      {/* Edit Website Modal */}
-      {showEditModal && editingWebsite && (
-        <EditWebsiteModal
-          komikWebsite={editingWebsite}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingWebsite(null);
-          }}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-    </div>
+        {/* Edit Website Modal */}
+        {showEditModal && editingWebsite && (
+          <EditWebsiteModal
+            komikWebsite={editingWebsite}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditingWebsite(null);
+            }}
+            onSuccess={handleEditSuccess}
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
