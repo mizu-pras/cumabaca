@@ -100,7 +100,49 @@ This builds the frontend for deployment to Vercel/Netlify.
 | `pnpm run dev` | Start backend (Docker) + frontend (Vite) concurrently |
 | `pnpm run dev:backend` | Start backend in Docker with MongoDB |
 | `pnpm run dev:frontend` | Start frontend Vite dev server |
+| `pnpm run dev:admin` | Start admin panel Vite dev server |
 | `pnpm run build` | Build frontend for production |
+| `pnpm run build:admin` | Build admin panel for production |
+
+## Admin Back Office
+
+### Overview
+
+The admin back office provides a secure interface for managing the Cuma Baca platform with JWT authentication and httpOnly cookies.
+
+### Setup
+
+1. **Register an admin user:**
+   ```bash
+   cd backend
+   node -e "const AdminUser = require('./models/AdminUser'); (async () => { const r = await AdminUser.create({username: 'admin', password: 'admin123', email: 'admin@cumabaca.com'}); console.log('User ID:', r.lastInsertRowid); })()"
+   ```
+
+2. **Start the admin application:**
+   ```bash
+   # Backend must be running first
+   pnpm run dev:admin
+   ```
+
+3. **Access the admin panel:**
+   - Navigate to `http://localhost:5174`
+   - Login with registered credentials
+
+### Environment Variables
+
+Create a `.env` file in `admin/`:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `http://localhost:3100` |
+
+Add to `backend/.env` or `docker-compose.dev.yml`:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JWT_SECRET` | JWT signing secret | `change-this-secret-in-production` |
+| `ADMIN_JWT_EXPIRY` | Token expiration time | `24h` |
+| `SQLITE_PATH` | SQLite database path | `./data/admin.db` |
 
 ### Usage
 
