@@ -14,6 +14,7 @@ import {
   SidebarSeparator,
 } from '../ui/sidebar';
 import { useAuthStore } from '../../stores/authStore';
+import { useSidebar } from '../ui/sidebar-provider';
 import NavUser from './nav-user';
 
 const menuItems = [
@@ -26,24 +27,27 @@ const menuItems = [
 function AppSidebar() {
   const location = useLocation();
   const { user } = useAuthStore();
+  const { isOpen } = useSidebar();
 
   return (
     <Sidebar className="bg-background border-border">
       <SidebarHeader className="border-b border-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
             <span className="font-bold text-lg">CB</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">Cuma Baca</span>
-            <span className="text-xs text-muted-foreground">Admin Panel</span>
-          </div>
+          {isOpen && (
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold">Cuma Baca</span>
+              <span className="text-xs text-muted-foreground">Admin Panel</span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          {isOpen && <SidebarGroupLabel>Menu</SidebarGroupLabel>}
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.path}>
@@ -51,9 +55,9 @@ function AppSidebar() {
                   asChild
                   isActive={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
                 >
-                  <NavLink to={item.path}>
-                    <item.icon size={18} />
-                    <span>{item.label}</span>
+                  <NavLink to={item.path} className="flex items-center gap-3">
+                    <item.icon size={18} className="flex-shrink-0" />
+                    {isOpen && <span>{item.label}</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

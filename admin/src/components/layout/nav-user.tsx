@@ -10,10 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { useSidebar } from '../ui/sidebar-provider';
 
 function NavUser({ user }) {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
+  const { isOpen } = useSidebar();
 
   const handleLogout = async () => {
     await logout();
@@ -36,11 +38,15 @@ function NavUser({ user }) {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-start flex-1">
-            <span className="text-sm font-medium">{user?.username || 'Admin'}</span>
-            <span className="text-xs text-muted-foreground">Administrator</span>
-          </div>
-          <ChevronsUpDown size={16} className="text-muted-foreground" />
+          {isOpen && (
+            <>
+              <div className="flex flex-col items-start flex-1">
+                <span className="text-sm font-medium">{user?.username || 'Admin'}</span>
+                <span className="text-xs text-muted-foreground">Administrator</span>
+              </div>
+              <ChevronsUpDown size={16} className="text-muted-foreground" />
+            </>
+          )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
