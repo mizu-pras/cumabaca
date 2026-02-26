@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, ChevronRight } from 'lucide-react';
 import { komiksApi } from '../../lib/adminApi';
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
 import { Button } from '../../components/ui/button';
@@ -52,9 +52,10 @@ function Komiks() {
         cell: ({ row }) => (
           <button
             onClick={() => navigate(`/komiks/${row.original.id}`)}
-            className="font-medium text-left hover:text-primary transition-colors"
+            className="flex items-center gap-2 font-medium text-left hover:text-primary transition-colors group"
           >
-            {row.getValue('title')}
+            <span className="flex-1 text-left">{row.getValue('title')}</span>
+            <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
           </button>
         ),
       },
