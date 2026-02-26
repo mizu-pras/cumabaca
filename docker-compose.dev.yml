@@ -1,58 +1,29 @@
 version: '3.8'
 
 services:
-    mongodb:
-        image: mongo:7
-        container_name: cumabaca-mongo-dev
-        restart: unless-stopped
-        ports:
-            - '27017:27017'
-        volumes:
-            - mongodb_data_dev:/data/db
-        environment:
-            MONGO_INITDB_DATABASE: cumabaca
-        healthcheck:
-            test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
-            interval: 10s
-            timeout: 5s
-            retries: 3
+  mongodb:
+    image: mongo:7
+    container_name: cumabaca-mongo-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
 
-    web:
-        build:
-            context: .
-            dockerfile: Dockerfile
-            target: development # Use dev stage
-        container_name: cumabaca-dev
-        restart: unless-stopped
-        ports:
-            - '3100:3100'
-            - '5173:5173'  # Vite dev server
-        environment:
-            - NODE_ENV=development
-            - MONGODB_URI=mongodb://mongodb:27017/cumabaca
-            - CACHE_TTL=86400
-        depends_on:
-            mongodb:
-                condition: service_healthy
-        volumes:
-            # Mount source code for hot-reload
-            # :z flag for SELinux compatibility (Podman on Fedora)
-            - ./routes:/app/routes:z
-            - ./controllers:/app/controllers:z
-            - ./scrapers:/app/scrapers:z
-            - ./config:/app/config:z
-            - ./utils:/app/utils:z
-            - ./public:/app/public:z
-            - ./app.js:/app/app.js:z
-            - ./bin:/app/bin:z
-            # React source files for Vite hot-reload
-            - ./src:/app/src:z
-            - ./vite.config.js:/app/vite.config.js:z
-            - ./index.html:/app/index.html:z
-            - ./postcss.config.js:/app/postcss.config.js:z
-            # Preserve node_modules in container
-            - /app/node_modules
-        # CMD runs Express (nodemon) + Vite concurrently (defined in Dockerfile)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: cumabaca-backend-dev
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/cumabaca
+      - CORS_ORIGIN=http://localhost:5173
 
 volumes:
-    mongodb_data_dev:
+  mongodb_data:

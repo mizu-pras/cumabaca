@@ -17,11 +17,11 @@ services:
       timeout: 5s
       retries: 3
 
-  web:
+  backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: cumabaca
+    container_name: cumabaca-backend
     restart: unless-stopped
     ports:
       - "3100:3100"
@@ -30,21 +30,12 @@ services:
       - PORT=3100
       - MONGODB_URI=mongodb://mongodb:27017/cumabaca
       - CACHE_TTL=86400
+      - CORS_ORIGIN=https://your-frontend-domain.vercel.app
     depends_on:
       mongodb:
         condition: service_healthy
-    # Optional: Mount logs directory
     volumes:
       - ./logs:/app/logs
-    # Resource limits (adjust based on your VPS)
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
 volumes:
   mongodb_data:
