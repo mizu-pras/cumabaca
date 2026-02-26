@@ -37,24 +37,21 @@ EXPOSE 3100
 CMD ["npm", "run", "dev"]
 
 
-# Stage 2: Production
-FROM node:20-alpine
+# Production stage
+FROM node:20-alpine AS production
 
-# Install Chromium and its dependencies
+# Install Chromium
 RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
-    freetype-dev \
     harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    # Chromium dependency
-    && rm -rf /var/cache/apk/*
+    ttf-freefont
 
-# Tell Puppeteer to skip installing Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    NODE_ENV=production
 
 # Create non-root user
 RUN addgroup -g 1001 -S appuser && \
@@ -62,37 +59,17 @@ RUN addgroup -g 1001 -S appuser && \
 
 WORKDIR /app
 
-# Set Node environment
-ENV NODE_ENV=production
-
-# Copy package files with proper ownership
 COPY --chown=appuser:appuser package*.json ./
-
-# Install only production dependencies
 RUN npm ci --only=production && \
     chown -R appuser:appuser /app/node_modules
 
-# Copy application files with proper ownership
-COPY --chown=appuser:appuser routes ./routes
-COPY --chown=appuser:appuser controllers ./controllers
-COPY --chown=appuser:appuser scrapers ./scrapers
-COPY --chown=appuser:appuser config ./config
-COPY --chown=appuser:appuser utils ./utils
-COPY --chown=appuser:appuser app.js ./
-COPY --chown=appuser:appuser bin ./bin
-
-# Create logs directory with proper ownership
-RUN mkdir -p /app/logs && \
-    chown appuser:appuser /app/logs
+COPY --chown=appuser:appuser . .
 
 USER appuser
 
-# Expose the application port
 EXPOSE 3100
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3100/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application
 CMD ["node", "./bin/www"]
