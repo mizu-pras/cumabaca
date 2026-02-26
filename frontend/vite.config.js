@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist-react',
+    outDir: 'dist',
     emptyOutDir: true,
   },
   server: {
