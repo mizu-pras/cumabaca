@@ -8,7 +8,40 @@ A minimalist comic scraper from [komiku.org](https://komiku.org) and [komikcast.
 - **Frontend:** React 19, Vite, Tailwind CSS v4
 - **Scraping:** Puppeteer, Cheerio
 - **Package Manager:** pnpm (required for monorepo workspace)
-- **Deployment:** Docker, Podman
+- **Architecture:** Monorepo with backend/frontend separation
+- **Deployment:** Backend (Docker/Podman on VPS), Frontend (Vercel/Netlify)
+
+## Project Structure
+
+```
+cumabaca/                      # Monorepo root
+├── package.json                # Root workspace config
+├── pnpm-workspace.yaml         # Workspace definition
+├── docker-compose.yml          # Production: Backend + MongoDB
+├── docker-compose.dev.yml      # Development: Backend + MongoDB
+│
+├── backend/                    # Express.js API
+│   ├── package.json
+│   ├── Dockerfile
+│   ├── app.js
+│   ├── bin/, routes/, controllers/, scrapers/, config/, utils/
+│
+└── frontend/                   # React + Vite
+    ├── package.json
+    ├── vite.config.js
+    ├── vercel.json, netlify.toml
+    ├── src/
+    │   ├── components/, pages/, stores/, lib/, styles/
+    │   └── main.jsx, App.jsx
+    └── public/
+```
+
+- **Backend:** Node.js, Express.js, MongoDB
+- **Frontend:** React 19, Vite, Tailwind CSS v4
+- **Scraping:** Puppeteer, Cheerio
+- **Package Manager:** pnpm (required for monorepo workspace)
+- **Architecture:** Monorepo with backend/frontend separation
+- **Deployment:** Backend (Docker/Podman on VPS), Frontend (Vercel/Netlify)
 
 ## Demo
 
@@ -16,67 +49,58 @@ Visit the [Cuma Baca Website](https://cumabaca.com) to try it out.
 
 ## Local Setup
 
-### Option 1: Docker (Recommended)
+### Prerequisites
 
-The easiest way to run Cuma Baca is with Docker/Podman. All services (Express, Vite, MongoDB) run in containers with hot-reload enabled.
+- **pnpm** (required for monorepo workspace): `npm install -g pnpm`
+- **Docker** or **Podman** (for backend and MongoDB): `sudo dnf install podman podman-compose`
 
-**Prerequisites:**
-- Docker or Podman (Fedora: `sudo dnf install podman podman-compose`)
-- pnpm (npm alternative for workspace management): `npm install -g pnpm`
+### Install Dependencies
 
-**Start development environment:**
 ```bash
-podman-compose -f docker-compose.dev.yml up
+pnpm install
 ```
 
-**Access the app:**
+### Development
+
+Start all services (backend in Docker + frontend locally):
+```bash
+pnpm run dev
+```
+
+**Individual services:**
+```bash
+# Backend (Docker + MongoDB)
+pnpm run dev:backend
+
+# Frontend (Vite dev server)
+pnpm run dev:frontend
+```
+
+**Access points:**
 - Frontend (Vite): http://localhost:5173
 - Backend API: http://localhost:3100
 - MongoDB: localhost:27017
 
-**Stop containers:**
+**Stop backend containers:**
 ```bash
 podman-compose -f docker-compose.dev.yml down
 ```
 
-### Option 2: Without Docker
+### Build for Production
 
-1. Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd <repository-name>
-    ```
+```bash
+pnpm run build
+```
 
-2. Install dependencies:
-    ```bash
-    pnpm install
-    ```
-
-3. Start MongoDB (required for caching):
-    ```bash
-    # Using Docker
-    docker run -d -p 27017:27017 --name mongodb mongo:7
-
-    # Or install MongoDB locally
-    ```
-
-4. Run the application:
-    ```bash
-    pnpm run dev
-    ```
-
-   This starts both Express backend (port 3100) and Vite frontend (port 5173) concurrently.
+This builds the frontend for deployment to Vercel/Netlify.
 
 **Available scripts:**
 | Command | Description |
 |---------|-------------|
-| `pnpm run dev` | Start Express + Vite concurrently |
-| `pnpm run dev:backend` | Start Express only (nodemon) |
-| `pnpm run dev:frontend` | Start Vite only |
-| `pnpm run build` | Build all workspaces |
-| `pnpm run build:backend` | Build backend for production |
-| `pnpm run build:frontend` | Build React app for production |
-| `pnpm run start` | Start production server |
+| `pnpm run dev` | Start backend (Docker) + frontend (Vite) concurrently |
+| `pnpm run dev:backend` | Start backend in Docker with MongoDB |
+| `pnpm run dev:frontend` | Start frontend Vite dev server |
+| `pnpm run build` | Build frontend for production |
 
 ### Usage
 
