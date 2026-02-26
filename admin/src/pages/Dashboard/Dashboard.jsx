@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { languagesApi, websitesApi, komiksApi } from '../../lib/adminApi';
+import { Globe, Link2, BookOpen, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -34,25 +36,56 @@ function Dashboard() {
   }, []);
 
   const statCards = [
-    { label: 'Languages', value: stats.languages, color: 'bg-blue-500' },
-    { label: 'Websites', value: stats.websites, color: 'bg-green-500' },
-    { label: 'Komiks', value: stats.komiks, color: 'bg-purple-500' },
+    {
+      title: 'Languages',
+      value: stats.languages,
+      icon: Globe,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      title: 'Websites',
+      value: stats.websites,
+      icon: Link2,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+    },
+    {
+      title: 'Komiks',
+      value: stats.komiks,
+      icon: BookOpen,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
+    },
   ];
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">Overview of your komik management system</p>
+      </div>
 
       {isLoading ? (
-        <div className="text-gray-500">Loading stats...</div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="animate-spin mr-2 text-muted-foreground" />
+          <span className="text-muted-foreground">Loading stats...</span>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid gap-4 md:grid-cols-3">
           {statCards.map((card) => (
-            <div key={card.label} className="bg-white rounded-lg shadow-md p-6">
-              <div className={`w-12 h-12 ${card.color} rounded-lg mb-4`} />
-              <p className="text-gray-600 text-sm">{card.label}</p>
-              <p className="text-3xl font-bold text-gray-900">{card.value}</p>
-            </div>
+            <Card key={card.title}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                <div className={`p-2 rounded-lg ${card.bgColor}`}>
+                  <card.icon className={`h-4 w-4 ${card.color}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{card.value}</div>
+                <p className="text-xs text-muted-foreground">Total items</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
