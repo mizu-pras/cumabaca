@@ -61,7 +61,7 @@ class KomikWebsite {
       result: result[0]
     });
 
-    const rows = this._parseResult(result);
+    const rows = KomikWebsite._parseResult(result);
     console.log(`[DEBUG] Parsed rows:`, rows.length, rows[0] || 'null');
     return rows[0] || null;
   }
@@ -95,10 +95,20 @@ class KomikWebsite {
     return true;
   }
 
-  static async _parseResult(result) {
+  static _parseResult(result) {
     if (!result || result.length === 0) return [];
     const columns = result[0].columns;
-    return result[0].values.map(row => {
+    const values = result[0].values;
+
+    console.log(`[DEBUG] _parseResult:`, {
+      hasColumns: !!columns,
+      columnsCount: columns?.length,
+      hasValues: !!values,
+      valuesCount: values?.length,
+      firstRow: values?.[0]
+    });
+
+    return values.map(row => {
       const obj = {};
       columns.forEach((col, i) => {
         obj[col] = row[i];
