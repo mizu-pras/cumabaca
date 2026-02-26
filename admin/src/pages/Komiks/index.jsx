@@ -84,7 +84,12 @@ function Komiks() {
               />
             )}
             <div>
-              <div className="font-medium text-sm text-gray-900">{row.original.title}</div>
+              <Link
+                to={`/komiks/${row.original.id}`}
+                className="font-medium text-sm text-blue-600 hover:text-blue-800"
+              >
+                {row.original.title}
+              </Link>
               {row.original.synopsis && (
                 <div className="text-xs text-gray-500 truncate max-w-xs">
                   {row.original.synopsis}
