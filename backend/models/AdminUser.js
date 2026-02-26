@@ -15,8 +15,9 @@ class AdminUser {
     sqlite.save();
 
     // Get the last insert rowid
-    const result = db.exec('SELECT last_insert_rowid() as id');
-    return { lastInsertRowid: result[0].values[0][0] };
+    const lastId = db.exec('SELECT last_insert_rowid() as id');
+    const lastInsertRowid = lastId[0]?.values[0]?.[0] ?? 0;
+    return { lastInsertRowid };
   }
 
   static async findByUsername(username) {

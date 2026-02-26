@@ -13,7 +13,7 @@ const adminController = {
         return res.status(400).json({ error: 'Username and password are required' });
       }
 
-      const user = AdminUser.findByUsername(username);
+      const user = await AdminUser.findByUsername(username);
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
@@ -24,7 +24,7 @@ const adminController = {
       }
 
       // Update last login
-      AdminUser.updateLastLogin(user.id);
+      await AdminUser.updateLastLogin(user.id);
 
       // Create JWT token
       const token = jwt.sign(
@@ -64,7 +64,7 @@ const adminController = {
       }
 
       const decoded = jwt.verify(token, JWT_SECRET);
-      const user = AdminUser.findById(decoded.id);
+      const user = await AdminUser.findById(decoded.id);
 
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
