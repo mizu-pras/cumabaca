@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit, sektedoujin.cc) and provides a clean, distraction-free reading experience.
 
-**Monorepo Architecture:** This project uses a pnpm/npm workspace monorepo structure with separate backend and frontend workspaces.
+**Monorepo Architecture:** This project uses a pnpm workspace monorepo structure with separate backend and frontend workspaces.
+
+**IMPORTANT:** This project requires **pnpm** as the package manager. npm commands will fail due to workspace configuration issues.
 
 ## Workflow Orchestration
 
@@ -50,28 +52,28 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 
 ### Root Workspace Commands
 
+**IMPORTANT:** This project requires **pnpm** as the package manager. npm commands will fail due to workspace configuration issues.
+
 ```bash
 # Install all dependencies (root + all workspaces)
-npm install
-# OR with pnpm (recommended for monorepo)
 pnpm install
 
 # Full development (Backend + Frontend concurrently)
-npm run dev
+pnpm run dev
 
 # Individual workspace development
-npm run dev:backend    # Backend only with hot-reload
-npm run dev:frontend   # Frontend only with Vite dev server
+pnpm run dev:backend    # Backend only with hot-reload
+pnpm run dev:frontend   # Frontend only with Vite dev server
 
 # Build all workspaces
-npm run build
+pnpm run build
 
 # Build individual workspaces
-npm run build:backend
-npm run build:frontend
+pnpm run build:backend
+pnpm run build:frontend
 
 # Start backend in production mode
-npm start
+pnpm run start
 
 # Clean all node_modules
 npm run clean
@@ -86,7 +88,7 @@ Run from root with `npm run <script> --workspace=backend` or cd into `backend/`:
 npm run dev
 
 # Production mode
-npm start
+pnpm run start
 
 # Test scraper functionality
 node test-scraper.js
@@ -94,17 +96,17 @@ node test-scraper.js
 
 ### Frontend Workspace Commands
 
-Run from root with `npm run <script> --workspace=frontend` or cd into `frontend/`:
+Run from root with `pnpm run <script> --workspace=frontend` or cd into `frontend/`:
 
 ```bash
 # Frontend development (Vite dev server)
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Preview production build
-npm run preview
+pnpm run preview
 ```
 
 ## Environment Variables
@@ -196,8 +198,8 @@ docker build -t cumabaca-backend ./backend
 
 # Or run directly
 cd backend
-npm install
-npm start
+pnpm install
+pnpm run start
 ```
 
 ## Project Structure

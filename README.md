@@ -7,6 +7,7 @@ A minimalist comic scraper from [komiku.org](https://komiku.org) and [komikcast.
 - **Backend:** Node.js, Express.js, MongoDB
 - **Frontend:** React 19, Vite, Tailwind CSS v4
 - **Scraping:** Puppeteer, Cheerio
+- **Package Manager:** pnpm (required for monorepo workspace)
 - **Deployment:** Docker, Podman
 
 ## Demo
@@ -21,6 +22,7 @@ The easiest way to run Cuma Baca is with Docker/Podman. All services (Express, V
 
 **Prerequisites:**
 - Docker or Podman (Fedora: `sudo dnf install podman podman-compose`)
+- pnpm (npm alternative for workspace management): `npm install -g pnpm`
 
 **Start development environment:**
 ```bash
@@ -47,7 +49,7 @@ podman-compose -f docker-compose.dev.yml down
 
 2. Install dependencies:
     ```bash
-    npm install
+    pnpm install
     ```
 
 3. Start MongoDB (required for caching):
@@ -60,7 +62,7 @@ podman-compose -f docker-compose.dev.yml down
 
 4. Run the application:
     ```bash
-    npm run dev:react
+    pnpm run dev
     ```
 
    This starts both Express backend (port 3100) and Vite frontend (port 5173) concurrently.
@@ -68,12 +70,13 @@ podman-compose -f docker-compose.dev.yml down
 **Available scripts:**
 | Command | Description |
 |---------|-------------|
-| `npm run dev:react` | Start Express + Vite concurrently |
-| `npm run dev` | Start Express only (nodemon) |
-| `npm run dev:vite` | Start Vite only |
-| `npm run build:react` | Build React app for production |
-| `npm run build:css` | Build Tailwind CSS |
-| `npm start` | Start production server |
+| `pnpm run dev` | Start Express + Vite concurrently |
+| `pnpm run dev:backend` | Start Express only (nodemon) |
+| `pnpm run dev:frontend` | Start Vite only |
+| `pnpm run build` | Build all workspaces |
+| `pnpm run build:backend` | Build backend for production |
+| `pnpm run build:frontend` | Build React app for production |
+| `pnpm run start` | Start production server |
 
 ### Usage
 

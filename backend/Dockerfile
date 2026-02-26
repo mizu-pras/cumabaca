@@ -20,8 +20,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 WORKDIR /app
 
 # Install ALL dependencies (including devDependencies for nodemon)
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
 # Copy source files
 COPY . .
@@ -59,8 +59,8 @@ RUN addgroup -g 1001 -S appuser && \
 
 WORKDIR /app
 
-COPY --chown=appuser:appuser package*.json ./
-RUN npm ci --only=production && \
+COPY --chown=appuser:appuser package.json ./
+RUN npm install --production --legacy-peer-deps && \
     chown -R appuser:appuser /app/node_modules
 
 COPY --chown=appuser:appuser . .
