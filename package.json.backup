@@ -1,0 +1,47 @@
+{
+    "name": "api",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "start": "node ./bin/www",
+        "dev": "nodemon ./bin/www",
+        "dev:react": "concurrently \"npm run dev\" \"npm run dev:vite\"",
+        "dev:vite": "vite",
+        "build:css": "postcss public/input.css -o public/output.css",
+        "build:react": "vite build",
+        "build:all": "npm run build:css && npm run build:react"
+    },
+    "dependencies": {
+        "axios": "^1.4.0",
+        "body-parser": "^1.20.2",
+        "cheerio": "^1.0.0-rc.3",
+        "cookie-parser": "~1.4.4",
+        "cors": "^2.8.5",
+        "debug": "~2.6.9",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "lucide-react": "^0.575.0",
+        "memory-cache": "^0.2.0",
+        "method-override": "^3.0.0",
+        "mongodb": "^6.21.0",
+        "morgan": "~1.9.1",
+        "prop-types": "^15.8.1",
+        "puppeteer": "^23.11.1",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "react-router": "^7.13.1",
+        "zustand": "^5.0.11"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4.1.18",
+        "@vitejs/plugin-react": "^5.1.4",
+        "autoprefixer": "^10.4.24",
+        "concurrently": "^9.2.1",
+        "nodemon": "^3.0.1",
+        "postcss": "^8.5.6",
+        "postcss-cli": "^11.0.1",
+        "prettier": "^3.8.1",
+        "tailwindcss": "^4.1.18",
+        "vite": "^7.3.1"
+    }
+}
