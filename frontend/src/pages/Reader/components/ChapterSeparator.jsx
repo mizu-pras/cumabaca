@@ -5,10 +5,10 @@ export function ChapterSeparator({ chapter, title, error, onRetry }) {
     return (
         <div className="w-full max-w-250 mx-auto my-4 px-4" data-chapter-separator={chapter}>
             {/* Sticky Header */}
-            <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 px-3 py-3 flex items-center justify-between">
+            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-700 px-3 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     {title && (
-                        <span className="text-gray-600 dark:text-gray-400">
+                        <span className="text-slate-600 dark:text-slate-400">
                             {title}
                         </span>
                     )}
@@ -17,7 +17,7 @@ export function ChapterSeparator({ chapter, title, error, onRetry }) {
                 {error && (
                     <button
                         onClick={onRetry}
-                        className="flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 rounded hover:bg-rose-200 dark:hover:bg-rose-800 transition-colors"
                         type="button"
                         aria-label="Retry loading chapter"
                     >
@@ -33,14 +33,14 @@ export function ChapterSeparator({ chapter, title, error, onRetry }) {
             {/* Error Message */}
             {error && (
                 <div
-                    className="mt-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                    className="mt-2 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg"
                     role="alert"
                     aria-live="polite"
                 >
-                    <p className="text-red-700 dark:text-red-300 text-center">
+                    <p className="text-rose-700 dark:text-rose-300 text-center">
                         Failed to load {chapter}. Tap Retry to try again.
                     </p>
-                    <p className="text-red-500 dark:text-red-400 text-sm text-center mt-1">
+                    <p className="text-rose-500 dark:text-rose-400 text-sm text-center mt-1">
                         Error: {error}
                     </p>
                 </div>

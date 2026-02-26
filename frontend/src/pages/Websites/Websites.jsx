@@ -35,7 +35,7 @@ export function Websites() {
   return (
     <div className="about-page max-w-2xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold mb-4">Website yang Didukung</h1>
-      <p className="text-gray-600 mb-8">
+      <p className="text-slate-600 mb-8">
         Berikut adalah daftar website komik yang saat ini didukung
         oleh Cuma Baca:
       </p>
@@ -44,22 +44,22 @@ export function Websites() {
         {visibleWebsites.map(site => (
           <div
             key={site.name}
-            className="bg-white border border-gray-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow"
+            className="bg-white border border-slate-200 rounded-lg p-6 mb-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-2xl font-semibold">{site.name}</h2>
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded">
                 Aktif
               </span>
             </div>
-            <div className="space-y-2 text-gray-700">
+            <div className="space-y-2 text-slate-700">
               <p>
                 <strong>Base URL:</strong>{' '}
                 <a
                   href={site.baseUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-indigo-600 hover:underline"
                 >
                   {site.baseUrl.replace('https://', '')}
                 </a>
@@ -74,7 +74,7 @@ export function Websites() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Cara Menggunakan</h2>
-        <ol className="list-decimal list-inside space-y-3 text-gray-700">
+        <ol className="list-decimal list-inside space-y-3 text-slate-700">
           <li>Kunjungi salah satu website yang didukung di atas</li>
           <li>Cari komik yang ingin Anda baca</li>
           <li>Salin URL halaman komik tersebut</li>
@@ -85,7 +85,7 @@ export function Websites() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Catatan Penting</h2>
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 text-gray-700 text-sm leading-relaxed">
+        <div className="bg-sky-50 border-l-4 border-sky-300 p-4 text-slate-700 text-sm leading-relaxed">
           <p className="mb-2">
             <strong>Ketersediaan:</strong> Website yang didukung
             dapat berubah sewaktu-waktu tergantung ketersediaan

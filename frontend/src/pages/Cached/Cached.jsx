@@ -16,10 +16,10 @@ function CachedContent() {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">📚</div>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+        <h2 className="text-2xl font-semibold text-slate-700 mb-2">
           Belum ada komik yang di-cache
         </h2>
-        <p className="text-gray-600">
+        <p className="text-slate-600">
           Baca komik pertama Anda untuk melihatnya muncul di sini.
         </p>
       </div>
@@ -39,7 +39,7 @@ export function Cached() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Komik Ter-Cache</h1>
-      <p className="text-gray-600 mb-8">
+      <p className="text-slate-600 mb-8">
         Daftar komik yang sudah di-scrape dan tersimpan di cache.
       </p>
       <Suspense fallback={<LoadingSpinner message="Memuat daftar komik ter-cache..." />}>

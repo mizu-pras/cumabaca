@@ -81,7 +81,7 @@ export function ChapterContent() {
             )}
 
             {chapter?.loaded && !chapter?.error && (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center pb-16">
                 {chapter.data.map((imgUrl, imgIndex) => (
                   <ChapterImage
                     key={imgIndex}

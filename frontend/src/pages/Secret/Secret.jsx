@@ -12,15 +12,15 @@ export function Secret() {
 
       <section className="mb-12">
         <h3 className="text-xl font-semibold mb-4">Website dengan Konten NSFW</h3>
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-          <ul className="space-y-2 text-gray-700">
+        <div className="bg-rose-50 border border-rose-200 rounded-lg p-6">
+          <ul className="space-y-2 text-slate-700">
             <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-purple-500 rounded-full" />
+              <span className="w-2 h-2 bg-rose-500 rounded-full" />
               <strong>Sektedoujin</strong>
-              <span className="text-gray-500 text-sm">(sektedoujin.cc)</span>
+              <span className="text-slate-500 text-sm">(sektedoujin.cc)</span>
             </li>
           </ul>
-          <p className="text-sm text-gray-600 mt-4">
+          <p className="text-sm text-slate-600 mt-4">
             Website ini ditandai sebagai NSFW dan hanya akan muncul di daftar
             Website yang Didukung jika mode NSFW diaktifkan.
           </p>
@@ -30,14 +30,14 @@ export function Secret() {
       <section className="mb-12">
         <Link
           to="/"
-          className="inline-block px-6 py-3 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+          className="inline-block px-6 py-3 bg-indigo-600 text-white rounded hover:bg-indigo-500 transition-colors"
         >
           Kembali ke Beranda
         </Link>
       </section>
 
       <section className="mb-12">
-        <div className="bg-gray-50 border-l-4 border-gray-400 p-4 text-sm text-gray-600">
+        <div className="bg-slate-50 border-l-4 border-slate-300 p-4 text-sm text-slate-600">
           <p className="mb-2">
             <strong>Privasi:</strong> Pengaturan NSFW disimpan secara lokal di
             browser Anda menggunakan localStorage. Tidak ada data yang dikirim

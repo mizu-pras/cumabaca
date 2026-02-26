@@ -30,7 +30,7 @@ export function NavigationControls({ position = 'top' }) {
         onClick={handlePrev}
         disabled={!hasPrev}
         type="button"
-        className={`px-4 py-2 border-b border-gray-300 ${
+        className={`px-4 py-2 border-b border-slate-300 hover:border-indigo-400 hover:text-indigo-700 transition-colors ${
           !hasPrev ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
@@ -40,7 +40,7 @@ export function NavigationControls({ position = 'top' }) {
         onClick={handleNext}
         disabled={!hasNext}
         type="button"
-        className={`px-4 py-2 border-b border-gray-300 ${
+        className={`px-4 py-2 border-b border-slate-300 hover:border-indigo-400 hover:text-indigo-700 transition-colors ${
           !hasNext ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >

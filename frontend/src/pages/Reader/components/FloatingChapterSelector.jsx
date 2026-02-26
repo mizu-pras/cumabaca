@@ -34,30 +34,30 @@ export function FloatingChapterSelector() {
       {showTrigger && !visible && (
         <button
           onClick={toggle}
-          className="fixed top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 text-sm"
+          className="fixed top-4 right-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500 text-sm"
           aria-label="Show chapter selector"
         >
           Chapters
         </button>
       )}
       {visible && (
-        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-300 px-4 py-3 flex items-center gap-4 z-50">
-          <button onClick={prevChapter} className="px-3 py-2 border-b border-gray-300 whitespace-nowrap">
+        <div className="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-4 z-50">
+          <button onClick={prevChapter} className="px-3 py-2 border-b border-slate-300 hover:border-indigo-400 hover:text-indigo-700 whitespace-nowrap transition-colors">
             Prev
           </button>
           <select
             value={activeChapter || ''}
             onChange={handleChange}
-            className="px-4 py-2 border-b border-gray-300 flex-1 min-w-0"
+            className="px-4 py-2 border-b border-slate-300 focus:outline-none focus:border-indigo-500 flex-1 min-w-0 transition-colors"
           >
             {ids.map(id => (
               <option key={id} value={id}>{id}</option>
             ))}
           </select>
-          <button onClick={nextChapter} className="px-3 py-2 border-b border-gray-300 whitespace-nowrap">
+          <button onClick={nextChapter} className="px-3 py-2 border-b border-slate-300 hover:border-indigo-400 hover:text-indigo-700 whitespace-nowrap transition-colors">
             Next
           </button>
-          <button onClick={toggle} className="px-3 py-1 text-gray-500 hover:text-gray-700 text-xl">
+          <button onClick={toggle} className="px-3 py-1 text-slate-500 hover:text-indigo-700 text-xl transition-colors">
             ×
           </button>
         </div>

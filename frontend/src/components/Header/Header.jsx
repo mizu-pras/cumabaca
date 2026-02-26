@@ -19,7 +19,7 @@ export function Header() {
       <h1 className="text-4xl m-0 flex items-center gap-3">
         Cuma Baca
         {nsfwEnabled && (
-          <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded font-medium">
+          <span className="text-sm bg-rose-100 text-rose-700 px-2 py-1 rounded font-medium">
             NSFW
           </span>
         )}
@@ -31,8 +31,8 @@ export function Header() {
             to={item.path}
             className={
               isActive(item.path)
-                ? 'text-gray-800 border-b-2 border-gray-800'
-                : 'text-gray-600 hover:text-gray-800 transition-colors'
+                ? 'text-indigo-700 border-b-2 border-indigo-600'
+                : 'text-slate-600 hover:text-indigo-700 transition-colors'
             }
           >
             {item.label}
