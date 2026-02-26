@@ -54,15 +54,7 @@ class KomikWebsite {
       LEFT JOIN websites w ON kw.website_id = w.id
       WHERE kw.id = ?
     `, [id]);
-
-    console.log(`[DEBUG] KomikWebsite.findById(${id}):`, {
-      hasResult: !!result[0],
-      valuesLength: result[0]?.values?.length || 0,
-      result: result[0]
-    });
-
     const rows = KomikWebsite._parseResult(result);
-    console.log(`[DEBUG] Parsed rows:`, rows.length, rows[0] || 'null');
     return rows[0] || null;
   }
 
@@ -99,15 +91,6 @@ class KomikWebsite {
     if (!result || result.length === 0) return [];
     const columns = result[0].columns;
     const values = result[0].values;
-
-    console.log(`[DEBUG] _parseResult:`, {
-      hasColumns: !!columns,
-      columnsCount: columns?.length,
-      hasValues: !!values,
-      valuesCount: values?.length,
-      firstRow: values?.[0]
-    });
-
     return values.map(row => {
       const obj = {};
       columns.forEach((col, i) => {
