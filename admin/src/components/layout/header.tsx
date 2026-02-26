@@ -51,6 +51,7 @@ function Header() {
         const prevBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
         if (prevBreadcrumb) {
           prevBreadcrumb.label = `${parentName} Details`;
+          prevBreadcrumb.isLast = true; // Mark as last since we're skipping this iteration
           return; // Skip this iteration as we modified the previous breadcrumb
         }
       }
