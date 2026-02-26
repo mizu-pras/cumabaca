@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Slot from '@radix-ui/react-slot';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -25,7 +26,7 @@ const BreadcrumbItem = React.forwardRef(({ className, ...props }, ref) => (
 BreadcrumbItem.displayName = 'BreadcrumbItem';
 
 const BreadcrumbLink = React.forwardRef(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? React.Fragment : 'a';
+  const Comp = asChild ? Slot.Root : 'a';
 
   return (
     <Comp
