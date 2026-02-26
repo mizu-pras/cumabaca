@@ -29,7 +29,7 @@ async function register() {
       process.exit(1);
     }
 
-    const result = AdminUser.create({ username, password, email });
+    const result = await AdminUser.create({ username, password, email });
 
     console.log('\n✓ Admin user registered successfully!');
     console.log(`  User ID: ${result.lastInsertRowid}`);
@@ -37,7 +37,7 @@ async function register() {
 
     process.exit(0);
   } catch (error) {
-    if (error.message.includes('UNIQUE constraint')) {
+    if (error.message.includes('UNIQUE') || error.message.includes('constraint')) {
       console.error('Error: Username or email already exists');
     } else {
       console.error('Error:', error.message);
