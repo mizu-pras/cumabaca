@@ -48,6 +48,14 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 - Go fix failing CI tests without being told how
 
 
+## System Requirements
+
+- **Node.js:** >=18.0.0
+- **pnpm:** Required for workspace commands
+- **Podman** (or Docker): For backend development with MongoDB
+
+**Note:** The project uses `podman-compose` as an alternative to `docker-compose`. They are largely compatible.
+
 ## Development Commands
 
 ### Root Workspace Commands
@@ -59,54 +67,48 @@ Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches conte
 pnpm install
 
 # Full development (Backend + Frontend concurrently)
+# Note: dev:backend uses podman-compose (alternative to docker-compose)
 pnpm run dev
 
 # Individual workspace development
-pnpm run dev:backend    # Backend only with hot-reload
+pnpm run dev:backend    # Backend via podman-compose (requires podman)
 pnpm run dev:frontend   # Frontend only with Vite dev server
 
-# Build all workspaces
+# Build frontend (backend has no build step)
 pnpm run build
-
-# Build individual workspaces
-pnpm run build:backend
-pnpm run build:frontend
-
-# Start backend in production mode
-pnpm run start
-
-# Clean all node_modules
-npm run clean
 ```
 
 ### Backend Workspace Commands
 
-Run from root with `npm run <script> --workspace=backend` or cd into `backend/`:
+**Note:** Backend requires MongoDB to be running before starting.
 
+From root directory:
 ```bash
-# Backend development with hot-reload (nodemon)
-npm run dev
+# Start backend (uses podman-compose with MongoDB)
+pnpm run dev:backend
+```
 
-# Production mode
-pnpm run start
-
-# Test scraper functionality
-node test-scraper.js
+Or cd into `backend/`:
+```bash
+cd backend
+pnpm run dev     # Development with hot-reload (nodemon)
+pnpm run start   # Production mode
 ```
 
 ### Frontend Workspace Commands
 
-Run from root with `pnpm run <script> --workspace=frontend` or cd into `frontend/`:
-
+From root directory:
 ```bash
-# Frontend development (Vite dev server)
-pnpm run dev
+pnpm run dev:frontend  # Vite dev server on port 5173
+pnpm run build         # Build for production
+```
 
-# Build for production
-pnpm run build
-
-# Preview production build
-pnpm run preview
+Or cd into `frontend/`:
+```bash
+cd frontend
+pnpm run dev      # Vite dev server
+pnpm run build    # Build for production
+pnpm run preview  # Preview production build
 ```
 
 ## Environment Variables
