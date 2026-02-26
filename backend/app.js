@@ -19,7 +19,7 @@ app.use(logger('dev'));
 // CORS configuration with environment-based multiple origins
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',')
-  : ['http://localhost:5173'];
+  : ['http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({
   origin: function(origin, callback) {
