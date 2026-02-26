@@ -1,22 +1,23 @@
 {
-    "name": "cumabaca",
+    "name": "cumabaca-monorepo",
     "version": "0.0.0",
     "private": true,
     "description": "Cuma Baca - A minimalist comic scraper with monorepo architecture",
     "workspaces": [
-        "packages/*"
+        "backend",
+        "frontend"
     ],
     "scripts": {
         "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-        "dev:backend": "npm run dev --workspace=packages/backend",
-        "dev:frontend": "npm run dev --workspace=packages/frontend",
+        "dev:backend": "npm run dev --workspace=backend",
+        "dev:frontend": "npm run dev --workspace=frontend",
         "build": "npm run build --workspaces",
-        "build:backend": "npm run build --workspace=packages/backend",
-        "build:frontend": "npm run build --workspace=packages/frontend",
-        "start": "npm run start --workspace=packages/backend",
+        "build:backend": "npm run build --workspace=backend",
+        "build:frontend": "npm run build --workspace=frontend",
+        "start": "npm run start --workspace=backend",
         "lint": "npm run lint --workspaces",
         "test": "npm run test --workspaces",
-        "clean": "rm -rf node_modules packages/*/node_modules"
+        "clean": "rm -rf node_modules backend/node_modules frontend/node_modules"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
