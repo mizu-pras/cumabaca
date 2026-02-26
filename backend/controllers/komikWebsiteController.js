@@ -79,8 +79,12 @@ const komikWebsiteController = {
       const { id } = req.params;
       const { url, total_chapters, last_checked_at } = req.body;
 
+      console.log(`[DEBUG] Updating komik_website with id=${id}`);
       const existing = await KomikWebsite.findById(id);
+      console.log(`[DEBUG] Found existing:`, existing);
+
       if (!existing) {
+        console.log(`[DEBUG] Mapping not found for id=${id}`);
         return res.status(404).json({ error: 'Mapping not found' });
       }
 

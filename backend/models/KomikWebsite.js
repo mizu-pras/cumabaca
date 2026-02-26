@@ -54,7 +54,15 @@ class KomikWebsite {
       LEFT JOIN websites w ON kw.website_id = w.id
       WHERE kw.id = ?
     `, [id]);
+
+    console.log(`[DEBUG] KomikWebsite.findById(${id}):`, {
+      hasResult: !!result[0],
+      valuesLength: result[0]?.values?.length || 0,
+      result: result[0]
+    });
+
     const rows = this._parseResult(result);
+    console.log(`[DEBUG] Parsed rows:`, rows.length, rows[0] || 'null');
     return rows[0] || null;
   }
 
