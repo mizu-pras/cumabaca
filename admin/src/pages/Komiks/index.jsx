@@ -1,42 +1,32 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
+import { Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { komiksApi } from '../../lib/adminApi';
-import { languagesApi } from '../../lib/adminApi';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  flexRender,
-} from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 
 function Komiks() {
+  const navigate = useNavigate();
   const [komiks, setKomiks] = useState([]);
-  const [languages, setLanguages] = useState([]);
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 });
-  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [filterLang, setFilterLang] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
 
   useEffect(() => {
     fetchKomiks();
-    fetchLanguages();
-  }, [pagination.pageIndex, search, filterLang, filterStatus]);
+  }, [pagination.page]);
 
   async function fetchKomiks() {
-    setIsLoading(true);
     try {
       const response = await komiksApi.getAll({
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        search,
-        language_id: filterLang,
-        status: filterStatus,
+        page: pagination.page,
+        limit: pagination.limit,
       });
       setKomiks(response.data.data);
-      setTotal(response.data.pagination.total);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data.pagination?.total || 0,
+      }));
     } catch (error) {
       console.error('Failed to fetch komiks:', error);
     } finally {
@@ -44,244 +34,183 @@ function Komiks() {
     }
   }
 
-  async function fetchLanguages() {
-    try {
-      const response = await languagesApi.getAll();
-      setLanguages(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch languages:', error);
-    }
-  }
-
   async function handleDelete(id) {
     if (!confirm('Are you sure you want to delete this komik?')) return;
-
     try {
       await komiksApi.delete(id);
       fetchKomiks();
     } catch (error) {
-      alert('Failed to delete komik: ' + error.message);
+      alert('Failed to delete komik: ' + (error.response?.data?.error || error.message));
     }
   }
 
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
-        cell: ({ getValue }) => <span className="text-sm text-gray-900">{getValue()}</span>,
-      },
-      {
         accessorKey: 'title',
         header: 'Title',
         cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            {row.original.cover_image && (
-              <img
-                src={row.original.cover_image}
-                alt=""
-                className="w-10 h-10 object-cover rounded"
-              />
-            )}
-            <div>
-              <Link
-                to={`/komiks/${row.original.id}`}
-                className="font-medium text-sm text-blue-600 hover:text-blue-800"
-              >
-                {row.original.title}
-              </Link>
-              {row.original.synopsis && (
-                <div className="text-xs text-gray-500 truncate max-w-xs">
-                  {row.original.synopsis}
-                </div>
-              )}
-            </div>
-          </div>
+          <button
+            onClick={() => navigate(`/komiks/${row.original.id}`)}
+            className="font-medium text-left hover:text-primary transition-colors"
+          >
+            {row.getValue('title')}
+          </button>
         ),
       },
       {
         accessorKey: 'language_name',
         header: 'Language',
-        cell: ({ getValue }) => <span className="text-sm text-gray-600">{getValue() || '-'}</span>,
       },
       {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ getValue }) => {
-          const status = getValue() || 'ongoing';
+          const status = getValue();
           return (
-            <span className={`px-2 py-1 rounded-full text-xs ${
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
               status === 'completed' ? 'bg-green-100 text-green-700' :
               status === 'dropped' ? 'bg-red-100 text-red-700' :
               'bg-blue-100 text-blue-700'
             }`}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status?.charAt(0).toUpperCase() + status?.slice(1) || 'Ongoing'}
             </span>
           );
         },
       },
       {
+        accessorKey: 'is_active',
+        header: 'Active',
+        cell: ({ getValue }) => (
+          <span className={getValue() ? 'text-green-600' : 'text-muted-foreground'}>
+            {getValue() ? 'Yes' : 'No'}
+          </span>
+        ),
+      },
+      {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-          <div className="text-right">
-            <Link
-              to={`/komiks/${row.original.id}/edit`}
-              className="text-blue-600 hover:text-blue-800 mr-3"
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/komiks/${row.original.id}/edit`)}
             >
-              <Pencil size={16} className="inline" />
-            </Link>
-            <button
+              <Edit2 size={16} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleDelete(row.original.id)}
-              className="text-red-600 hover:text-red-800"
+              className="text-destructive hover:text-destructive"
             >
-              <Trash2 size={16} className="inline" />
-            </button>
+              <Trash2 size={16} />
+            </Button>
           </div>
         ),
       },
     ],
-    []
+    [navigate]
   );
 
   const table = useReactTable({
     data: komiks,
     columns,
-    pageCount: Math.ceil(total / pagination.pageSize),
-    state: { pagination },
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: true,
   });
 
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
+
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Komiks</h1>
-        <Link
-          to="/komiks/new"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Komiks</h1>
+          <p className="text-muted-foreground">Manage your comic collection</p>
+        </div>
+        <Button onClick={() => navigate('/komiks/new')} className="gap-2">
           <Plus size={20} />
           Add Komik
-        </Link>
+        </Button>
       </div>
 
-      <div className="flex gap-4 mb-4 flex-wrap">
-        <input
-          type="text"
-          placeholder="Search komiks..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        />
-        <select
-          value={filterLang}
-          onChange={(e) => setFilterLang(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        >
-          <option value="">All Languages</option>
-          {languages.map((lang) => (
-            <option key={lang.id} value={lang.id}>
-              {lang.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        >
-          <option value="">All Status</option>
-          <option value="ongoing">Ongoing</option>
-          <option value="completed">Completed</option>
-          <option value="dropped">Dropped</option>
-        </select>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Komiks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="animate-spin mr-2 text-muted-foreground" />
+              <span className="text-muted-foreground">Loading komiks...</span>
+            </div>
+          ) : komiks.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No komiks found. Add your first komik to get started.</p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-md border">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <th
+                            key={header.id}
+                            className="px-4 py-3 text-left text-sm font-medium text-muted-foreground"
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())
+                            }
+                          </th>
+                        ))}
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody className="divide-y">
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-muted/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-4 py-3 text-sm">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-      {isLoading ? (
-        <div className="text-gray-500">Loading...</div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-6 py-4"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {komiks.length === 0 && (
-            <div className="text-center py-8 text-gray-500">No komiks found</div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+                    disabled={pagination.page === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {pagination.page} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+                    disabled={pagination.page === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {table.getPageCount() > 1 && (
-        <div className="flex justify-center gap-2 mt-6 items-center">
-          <button
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
-          >
-            &laquo;
-          </button>
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-          </span>
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
-          >
-            Next
-          </button>
-          <button
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
-          >
-            &raquo;
-          </button>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
