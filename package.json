@@ -10,8 +10,8 @@
     "scripts": {
         "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
         "dev:backend": "podman-compose -f docker-compose.dev.yml up",
-        "dev:frontend": "pnpm --filter frontend dev",
-        "build": "pnpm --filter frontend build"
+        "dev:frontend": "pnpm --filter cumabaca-frontend dev",
+        "build": "pnpm --filter cumabaca-frontend build"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
