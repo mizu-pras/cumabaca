@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router';
 import { SidebarTrigger } from '../ui/sidebar-trigger';
+import { useSidebar } from '../ui/sidebar-provider';
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -12,6 +13,7 @@ import {
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isOpen, toggle } = useSidebar();
 
   // Generate breadcrumbs based on current path
   const generateBreadcrumbs = () => {
@@ -67,7 +69,7 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6">
-      <SidebarTrigger />
+      <SidebarTrigger isOpen={isOpen} onToggle={toggle} />
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
