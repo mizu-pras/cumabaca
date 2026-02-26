@@ -41,25 +41,22 @@ function Header() {
         label = 'New';
       } else if (name === 'edit') {
         label = 'Edit';
+      } else if (/^\d+$/.test(name)) {
+        // Numeric ID - add "Details" breadcrumb instead of hiding the ID
+        breadcrumbs.push({
+          label: 'Details',
+          path: currentPath,
+          isLast: true,
+        });
+        return; // Skip adding the ID as a breadcrumb
       } else {
         label = label.charAt(0).toUpperCase() + label.slice(1);
-      }
-
-      // Don't show ID in breadcrumb for detail pages
-      if (/^\d+$/.test(name) && pathnames[index - 1]) {
-        const parentName = pathnames[index - 1].charAt(0).toUpperCase() + pathnames[index - 1].slice(1);
-        const prevBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-        if (prevBreadcrumb) {
-          prevBreadcrumb.label = `${parentName} Details`;
-          prevBreadcrumb.isLast = true; // Mark as last since we're skipping this iteration
-          return; // Skip this iteration as we modified the previous breadcrumb
-        }
       }
 
       breadcrumbs.push({
         label,
         path: currentPath,
-        isLast,
+        isLast: isLast,
       });
     });
 
