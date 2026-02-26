@@ -14,7 +14,7 @@ import {
   SidebarSeparator,
 } from '../ui/sidebar';
 import { useAuthStore } from '../../stores/authStore';
-import { NavUser } from './nav-user';
+import NavUser from './nav-user';
 
 const menuItems = [
   { path: '/dashboard', icon: Home, label: 'Dashboard' },
