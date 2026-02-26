@@ -9,6 +9,7 @@ const path = require('path');
 const { connectToDatabase } = require('./config/database');
 
 const komikRouter = require('./routes/komik');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use(express.static('public'));
 
 // API Routes
 app.use('/komik', komikRouter);
+app.use('/admin', adminRouter);
 
 // Serve React static assets in production
 if (process.env.NODE_ENV === 'production') {
