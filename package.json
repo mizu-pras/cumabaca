@@ -11,7 +11,9 @@
         "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
         "dev:backend": "podman-compose -f docker-compose.dev.yml up",
         "dev:frontend": "pnpm --filter cumabaca-frontend dev",
-        "build": "pnpm --filter cumabaca-frontend build"
+        "dev:admin": "pnpm --filter cumabaca-admin dev",
+        "build": "pnpm --filter cumabaca-frontend build",
+        "build:admin": "pnpm --filter cumabaca-admin build"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
