@@ -74,8 +74,8 @@ function Header() {
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
-            <div key={crumb.path} className="flex items-center gap-1.5">
-              <BreadcrumbItem>
+            <>
+              <BreadcrumbItem key={crumb.path}>
                 {crumb.isLast ? (
                   <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                 ) : (
@@ -92,7 +92,7 @@ function Header() {
                 )}
               </BreadcrumbItem>
               {!crumb.isLast && <BreadcrumbSeparator />}
-            </div>
+            </>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
