@@ -14,8 +14,12 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Redirect to login on 401
+    // Only redirect to login on 401 if NOT already on login page
+    // and NOT attempting to login (login endpoint)
+    const isLoginEndpoint = error.config?.url?.includes('/admin/auth/login');
+    const isOnLoginPage = window.location.pathname === '/login';
+
+    if (error.response?.status === 401 && !isLoginEndpoint && !isOnLoginPage) {
       window.location.href = '/login';
     }
     return Promise.reject(error);
