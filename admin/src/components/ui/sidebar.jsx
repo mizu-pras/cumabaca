@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Slot from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
@@ -87,7 +88,7 @@ const SidebarMenuItem = React.forwardRef(({ className, ...props }, ref) => (
 SidebarMenuItem.displayName = 'SidebarMenuItem';
 
 const SidebarMenuButton = React.forwardRef(({ className, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? React.Fragment : 'button';
+  const Comp = asChild ? Slot.Root : 'button';
   return (
     <Comp
       ref={ref}
