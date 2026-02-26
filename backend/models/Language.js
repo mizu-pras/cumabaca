@@ -3,12 +3,13 @@ const sqlite = require('../config/sqlite');
 class Language {
   static async create({ name, code }) {
     const db = await sqlite.getDb();
-    const result = db.run(
+    db.run(
       'INSERT INTO languages (name, code) VALUES (?, ?)',
       [name, code]
     );
+    const lastId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
     sqlite.save();
-    return { id: result[0]?.meta?.last_row_insert_rowid || result };
+    return { id: lastId };
   }
 
   static async findAll(filters = {}) {

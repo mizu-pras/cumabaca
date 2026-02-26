@@ -3,12 +3,13 @@ const sqlite = require('../config/sqlite');
 class Website {
   static async create({ name, url, language_id, use_browser, search_endpoint, is_nsfw }) {
     const db = await sqlite.getDb();
-    const result = db.run(
+    db.run(
       'INSERT INTO websites (name, url, language_id, use_browser, search_endpoint, is_nsfw) VALUES (?, ?, ?, ?, ?, ?)',
       [name, url, language_id, use_browser ? 1 : 0, search_endpoint, is_nsfw ? 1 : 0]
     );
+    const lastId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
     sqlite.save();
-    return { id: result[0]?.meta?.last_row_insert_rowid || result };
+    return { id: lastId };
   }
 
   static async findAll(filters = {}) {

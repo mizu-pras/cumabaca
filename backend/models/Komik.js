@@ -3,12 +3,13 @@ const sqlite = require('../config/sqlite');
 class Komik {
   static async create({ title, synopsis, language_id, cover_image, status, is_active }) {
     const db = await sqlite.getDb();
-    const result = db.run(
+    db.run(
       'INSERT INTO komiks (title, synopsis, language_id, cover_image, status, is_active) VALUES (?, ?, ?, ?, ?, ?)',
       [title, synopsis, language_id, cover_image, status || 'ongoing', is_active !== undefined ? (is_active ? 1 : 0) : 1]
     );
+    const lastId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
     sqlite.save();
-    return { id: result[0]?.meta?.last_row_insert_rowid || result };
+    return { id: lastId };
   }
 
   static async findAll(filters = {}) {
