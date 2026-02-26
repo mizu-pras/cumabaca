@@ -9,6 +9,7 @@ import Websites from './pages/Websites';
 import WebsiteForm from './pages/Websites/components/WebsiteForm';
 import Komiks from './pages/Komiks';
 import KomikForm from './pages/Komiks/components/KomikForm';
+import KomikDetail from './pages/Komiks/components/KomikDetail';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
 
           {/* Komiks routes */}
           <Route path="komiks" element={<Komiks />} />
+          <Route path="komiks/:id" element={<KomikDetail />} />
           <Route path="komiks/new" element={<KomikForm />} />
           <Route path="komiks/:id/edit" element={<KomikForm />} />
         </Route>
