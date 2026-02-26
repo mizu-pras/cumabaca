@@ -1,10 +1,28 @@
 import { useEffect, useRef } from 'react';
 import { useReaderStore } from '@/stores/readerStore';
 
+// Throttle utility function
+function throttle(func, wait) {
+  let timeout;
+  let lastRan;
+  return function(...args) {
+    if (!lastRan) {
+      func.apply(this, args);
+      lastRan = Date.now();
+    } else {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if ((Date.now() - lastRan) >= wait) {
+          func.apply(this, args);
+          lastRan = Date.now();
+        }
+      }, wait - (Date.now() - lastRan));
+    }
+  };
+}
+
 export function useActiveChapterDetection(loadedChapterIds) {
   const setActiveChapter = useReaderStore(state => state.setActiveChapter);
-  const observerRef = useRef(null);
-  const observedElementsRef = useRef(new Set());
   const setActiveChapterRef = useRef(setActiveChapter);
 
   // Keep ref in sync
@@ -13,58 +31,58 @@ export function useActiveChapterDetection(loadedChapterIds) {
   }, [setActiveChapter]);
 
   useEffect(() => {
-    // SSR guard
-    if (typeof document === 'undefined') return;
-
-    // Create Intersection Observer
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find all intersecting entries
-        const visibleEntries = entries.filter(entry => entry.isIntersecting);
-
-        if (visibleEntries.length === 0) return;
-
-        // Sort by position (top to bottom)
-        visibleEntries.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        // Get the topmost visible chapter
-        const topmostEntry = visibleEntries[0];
-        const newActiveChapter = topmostEntry.target.dataset.chapterId;
-
-        if (newActiveChapter && setActiveChapterRef.current) {
-          setActiveChapterRef.current(newActiveChapter);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '-10% 0px -10% 0px', // Trigger when element is in middle 80% of viewport
-        threshold: 0,
-      }
-    );
-
-    observerRef.current = observer;
-
-    return () => {
-      observer.disconnect();
-      observedElementsRef.current.clear();
-    };
-  }, []); // Empty deps - run once on mount
-
-  // Observe elements when loadedChapterIds changes
-  useEffect(() => {
     if (loadedChapterIds.length === 0) return;
 
-    // Small delay to ensure DOM is updated
-    const timeoutId = setTimeout(() => {
-      const firstImages = document.querySelectorAll('[data-chapter-first="true"]');
-      firstImages.forEach((img) => {
-        if (!observedElementsRef.current.has(img) && observerRef.current) {
-          observerRef.current.observe(img);
-          observedElementsRef.current.add(img);
+    // Function to find active chapter based on separator positions
+    const updateActiveChapter = () => {
+      const separators = document.querySelectorAll('[data-chapter-separator]');
+      if (separators.length === 0) return;
+
+      // Find the last separator that is above or at the top of viewport
+      // This means we've scrolled past it, so we're in that chapter
+      let activeChapterId = null;
+
+      for (let i = 0; i < separators.length; i++) {
+        const separator = separators[i];
+        const rect = separator.getBoundingClientRect();
+
+        // If separator is above the viewport (top <= 0) or near top (within first 100px)
+        // This chapter should be active
+        if (rect.top <= 100) {
+          activeChapterId = separator.dataset.chapterSeparator;
+        } else {
+          // Separators are in order, so once we find one below, stop
+          break;
         }
-      });
+      }
+
+      // If no separator is above, use the first one
+      if (!activeChapterId && separators.length > 0) {
+        activeChapterId = separators[0].dataset.chapterSeparator;
+      }
+
+      if (activeChapterId && setActiveChapterRef.current) {
+        setActiveChapterRef.current(activeChapterId);
+      }
+    };
+
+    // Initial check
+    const timeoutId = setTimeout(() => {
+      updateActiveChapter();
     }, 100);
 
-    return () => clearTimeout(timeoutId);
+    // Throttled scroll handler
+    const handleScroll = throttle(() => {
+      updateActiveChapter();
+    }, 100);
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, [loadedChapterIds]);
 }

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 export function ChapterSeparator({ chapter, title, error, onRetry }) {
     return (
-        <div className="w-full max-w-250 mx-auto my-4 px-4">
+        <div className="w-full max-w-250 mx-auto my-4 px-4" data-chapter-separator={chapter}>
             {/* Sticky Header */}
             <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 px-3 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
