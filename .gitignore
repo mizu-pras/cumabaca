@@ -4,3 +4,9 @@ node_modules
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Local database files
+backend/data/
+*.db
+*.db-shm
+*.db-wal
