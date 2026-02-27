@@ -17,6 +17,7 @@ Public endpoints for scraping comic data from supported websites.
 Returns chapter list for a comic from a supported website.
 
 **Cache:** 24 hours (86400 seconds)
+**Authentication:** No authentication required
 
 ### Query Parameters
 
@@ -44,15 +45,12 @@ console.log(data);
 ```json
 {
   "url": "https://komiku.org/manga/one-piece",
-  "data": {
-    "title": "One Piece",
-    "chapters": [
-      {
-        "url": "https://komiku.org/chapter/one-piece-1",
-        "title": "Chapter 1"
-      }
-    ]
-  }
+  "data": [
+    {
+      "chapter": "Chapter 1",
+      "url": "https://komiku.org/chapter/one-piece-1"
+    }
+  ]
 }
 ```
 
@@ -62,6 +60,7 @@ console.log(data);
 |--------|-------------|
 | 403 | NSFW content without `mode=secret` |
 | 404 | No chapters found |
+| 500 | Server error during scraping |
 
 ### NSFW Mode Response (403 Forbidden)
 
@@ -80,6 +79,7 @@ console.log(data);
 Returns images for a specific chapter.
 
 **Cache:** 24 hours (86400 seconds)
+**Authentication:** No authentication required
 
 ### Query Parameters
 
@@ -107,7 +107,7 @@ console.log(data);
 ```json
 {
   "title": "Chapter 1",
-  "images": [
+  "data": [
     "https://example.com/image1.jpg",
     "https://example.com/image2.jpg"
   ]
@@ -119,6 +119,8 @@ console.log(data);
 | Status | Description |
 |--------|-------------|
 | 403 | NSFW content without `mode=secret` |
+| 404 | Chapter not found or no images available |
+| 500 | Server error during scraping |
 
 ---
 
@@ -127,6 +129,7 @@ console.log(data);
 Image proxy to bypass CORS and hotlink protection.
 
 **No Cache** (sets client cache headers for 1 day)
+**Authentication:** No authentication required
 
 ### Query Parameters
 
@@ -160,6 +163,8 @@ Binary image data with headers:
 | Status | Description |
 |--------|-------------|
 | 400 | Missing URL parameter |
+| 404 | Image not found or unable to fetch |
+| 500 | Server error during image proxy |
 
 ---
 
@@ -210,6 +215,17 @@ curl "http://localhost:3100/komik/cached-comics"
   }
 ]
 ```
+
+**Field Descriptions:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `url` | string | Original comic page URL |
+| `title` | string | Comic title |
+| `domain` | string | Website domain (e.g., komiku.org) |
+| `cachedAt` | string | ISO 8601 timestamp when cached |
+| `expiresAt` | string | ISO 8601 timestamp when cache expires |
+| `isNsfw` | boolean | Whether `mode=secret` was used to access this content |
 
 ---
 
