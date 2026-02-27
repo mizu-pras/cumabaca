@@ -25,7 +25,9 @@
     "mongodb": "^6.21.0",
     "morgan": "^1.10.0",
     "puppeteer": "^23.11.1",
-    "sql.js": "^1.14.0"
+    "sql.js": "^1.14.0",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

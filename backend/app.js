@@ -10,11 +10,15 @@ const { connectToDatabase } = require('./config/database');
 
 const komikRouter = require('./routes/komik');
 const adminRouter = require('./routes/admin');
+const swaggerUi = require('./swagger-ui');
 
 const app = express();
 
 // Middleware
 app.use(logger('dev'));
+
+// Serve API docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup);
 
 // CORS configuration with environment-based multiple origins
 const allowedOrigins = process.env.CORS_ORIGIN
