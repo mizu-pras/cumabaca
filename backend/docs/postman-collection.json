@@ -1,0 +1,768 @@
+{
+  "info": {
+    "name": "Cuma Baca API",
+    "description": "A minimalist comic scraper API that fetches content from multiple comic websites and provides a clean, distraction-free reading experience with admin management capabilities.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3100",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string",
+      "disabled": true
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "in",
+        "value": "cookie",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "admin_token={{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "execution/javascript",
+        "exec": [
+          "// Auto-include cookie header for admin requests",
+          "const url = request.url.toLowerCase();",
+          "if (url.includes('/admin/')) {",
+          "    const token = pm.environment.get('admin_token');",
+          "    if (token) {",
+          "        pm.request.headers.add({",
+          "            key: 'Cookie',",
+          "            value: 'admin_token=' + token",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Comic Scraping",
+      "description": "Public endpoints for scraping comic content",
+      "item": [
+        {
+          "name": "Get Chapter List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/chapters?url=https://komiku.org/manga/one-piece",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "chapters"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://komiku.org/manga/one-piece",
+                  "description": "URL of the comic page to scrape"
+                },
+                {
+                  "key": "mode",
+                  "value": "normal",
+                  "description": "Content mode (required for NSFW sources: normal/secret)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Scrapes and returns the chapter list for a comic from the specified URL.\n\n**Note**: First request may take 5-10 seconds. Subsequent requests are cached (24h TTL)."
+          }
+        },
+        {
+          "name": "Get Chapter Data (Images)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/data?url=https://komiku.org/manga/one-piece/chapter-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "data"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://komiku.org/manga/one-piece/chapter-1",
+                  "description": "URL of the chapter page to scrape"
+                },
+                {
+                  "key": "mode",
+                  "value": "normal",
+                  "description": "Content mode (required for NSFW sources: normal/secret)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Scrapes and returns the images for a specific chapter.\n\n**Note**: First request may take 5-10 seconds. Subsequent requests are cached (24h TTL)."
+          }
+        },
+        {
+          "name": "Proxy Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/image?url=https://v1.komikcast.fit/wp-content/uploads/2023/01/001.jpg",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "image"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "https://v1.komikcast.fit/wp-content/uploads/2023/01/001.jpg",
+                  "description": "URL of the image to proxy"
+                }
+              ]
+            },
+            "description": "Proxies image requests to bypass CORS and hotlink protection.\n\nSome sources (e.g., Komikcast) require this proxy to display images properly.\nSets appropriate CORS headers for cross-origin requests.",
+            "response": []
+          }
+        },
+        {
+          "name": "Get Cache Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/cache/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "cache", "stats"]
+            },
+            "description": "Returns cache statistics including total entries, expired entries, total size, and average size.\n\nUseful for monitoring cache health and usage."
+          }
+        },
+        {
+          "name": "Get Cached Comics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/cached-comics",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "cached-comics"]
+            },
+            "description": "Retrieves all cached comic data from MongoDB.\n\nReturns a list of previously scraped comic URLs with their metadata and timestamps."
+          }
+        },
+        {
+          "name": "Clear Cache Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/komik/cache?key=__express__/komik/chapters?url=https://komiku.org/manga/one-piece",
+              "host": ["{{baseUrl}}"],
+              "path": ["komik", "cache"],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "__express__/komik/chapters?url=https://komiku.org/manga/one-piece",
+                  "description": "Cache key to delete"
+                }
+              ]
+            },
+            "description": "Deletes a specific cache entry by its key.\n\nUseful for forcing a refresh of specific cached content.\n\nTo clear all cache, use the 'Clear All Cache' request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Auth",
+      "description": "Admin authentication endpoints",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "auth", "login"]
+            },
+            "description": "Authenticates an admin user and sets a JWT cookie.\n\nOn successful login, an httpOnly cookie `admin_token` is set with a 24-hour expiry.\n\n**Default credentials** (change in production):\n- Username: `admin`\n- Password: `securepassword123`"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "execution/javascript",
+                "exec": [
+                  "// Save token from response cookies",
+                  "const cookies = pm.response.headers.all().filter(h => h.key.toLowerCase() === 'set-cookie');",
+                  "if (cookies.length > 0) {",
+                  "    const cookieHeader = cookies[0].value;",
+                  "    const tokenMatch = cookieHeader.match(/admin_token=([^;]+)/);",
+                  "    if (tokenMatch) {",
+                  "        pm.environment.set('admin_token', tokenMatch[1]);",
+                  "        console.log('Token saved to environment');",
+                  "    }",
+                  "}",
+                  "",
+                  "// Also check for token in response body",
+                  "try {",
+                  "    const json = pm.response.json();",
+                  "    if (json.token) {",
+                  "        pm.environment.set('admin_token', json.token);",
+                  "    }",
+                  "} catch (e) {",
+                  "    // No JSON response",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "auth", "logout"]
+            },
+            "description": "Clears the authentication cookie.\n\nUse this to securely end the admin session."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "execution/javascript",
+                "exec": [
+                  "// Clear token from environment",
+                  "pm.environment.set('admin_token', '');",
+                  "console.log('Token cleared from environment');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "auth", "me"]
+            },
+            "description": "Returns the currently authenticated admin user from the JWT cookie.\n\nRequires valid `admin_token` cookie (set via Login).\n\nUse this to verify authentication status."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Languages",
+      "description": "Language management endpoints",
+      "item": [
+        {
+          "name": "List Languages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/languages?page=1&limit=20&search=&is_active=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "languages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search in name/code fields",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a paginated list of languages.\n\nSupports filtering by `is_active`, searching by name/code, and pagination via `page` and `limit` parameters."
+          }
+        },
+        {
+          "name": "Create Language",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Japanese\",\n  \"code\": \"ja\",\n  \"flag_emoji\": \"🇯🇵\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/languages",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "languages"]
+            },
+            "description": "Creates a new language.\n\n**Fields:**\n- `name` (required): Display name (e.g., \"Japanese\")\n- `code` (required): ISO 639-1 code (e.g., \"ja\")\n- `flag_emoji`: Flag emoji for display\n- `is_active`: Enable/disable language (default: true)"
+          }
+        },
+        {
+          "name": "Get Language by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/languages/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "languages", "1"]
+            },
+            "description": "Returns a single language by ID.\n\nUse the ID from the List Languages response."
+          }
+        },
+        {
+          "name": "Update Language",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Japanese\",\n  \"code\": \"ja\",\n  \"flag_emoji\": \"🇯🇵\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/languages/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "languages", "1"]
+            },
+            "description": "Updates an existing language.\n\nAll fields are optional. Include only the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Language",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/languages/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "languages", "1"]
+            },
+            "description": "Deletes a language by ID.\n\n**Warning**: This will cascade-delete related websites and komik-website mappings. Use with caution."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Websites",
+      "description": "Source website management endpoints",
+      "item": [
+        {
+          "name": "List Websites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/websites?page=1&limit=20&search=&is_active=&language_id=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "websites"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search in name/domain fields",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "",
+                  "description": "Filter by active status (true/false)",
+                  "disabled": true
+                },
+                {
+                  "key": "language_id",
+                  "value": "",
+                  "description": "Filter by language ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a paginated list of source websites.\n\nSupports filtering by `is_active` and `language_id`, searching by name/domain, and pagination."
+          }
+        },
+        {
+          "name": "Create Website",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Komiku\",\n  \"domain\": \"komiku.org\",\n  \"base_url\": \"https://komiku.org\",\n  \"language_id\": 1,\n  \"is_active\": true,\n  \"requires_browser\": false,\n  \"is_nsfw\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/websites",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "websites"]
+            },
+            "description": "Creates a new source website.\n\n**Fields:**\n- `name` (required): Display name\n- `domain` (required): Website domain\n- `base_url` (required): Base URL for scraping\n- `language_id` (required): Reference to languages table\n- `is_active`: Enable/disable website\n- `requires_browser`: Needs headless browser for JS rendering\n- `is_nsfw`: Website contains NSFW content (requires secret mode)"
+          }
+        },
+        {
+          "name": "Get Website by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "websites", "1"]
+            },
+            "description": "Returns a single website by ID with all details including configuration."
+          }
+        },
+        {
+          "name": "Update Website",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Komiku\",\n  \"domain\": \"komiku.org\",\n  \"base_url\": \"https://komiku.org\",\n  \"language_id\": 1,\n  \"is_active\": true,\n  \"requires_browser\": false,\n  \"is_nsfw\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "websites", "1"]
+            },
+            "description": "Updates an existing website.\n\nAll fields are optional. Include only the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Website",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "websites", "1"]
+            },
+            "description": "Deletes a website by ID.\n\n**Warning**: This will cascade-delete related komik-website mappings. Use with caution."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Komiks",
+      "description": "Comic catalog management endpoints",
+      "item": [
+        {
+          "name": "List Komiks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks?page=1&limit=20&search=&status=&language_id=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search in title/alt_titles fields",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by status (Ongoing/Completed)",
+                  "disabled": true
+                },
+                {
+                  "key": "language_id",
+                  "value": "",
+                  "description": "Filter by language ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a paginated list of komiks.\n\nSupports filtering by `status` and `language_id`, searching by title/alternative titles, and pagination."
+          }
+        },
+        {
+          "name": "Create Komik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"One Piece\",\n  \"slug\": \"one-piece\",\n  \"description\": \"A legendary pirate adventure\",\n  \"status\": \"Ongoing\",\n  \"cover_image\": \"https://example.com/cover.jpg\",\n  \"language_id\": 1,\n  \"alternative_titles\": [\"ONE PIECE\"],\n  \"authors\": [\"Eiichiro Oda\"],\n  \"artists\": [\"Eiichiro Oda\"],\n  \"genres\": [\"Action\", \"Adventure\"],\n  \"type\": \"Manga\",\n  \"release_year\": 1997\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks"]
+            },
+            "description": "Creates a new komik entry.\n\n**Required fields:**\n- `title`: Main title\n- `slug`: URL-friendly identifier\n- `language_id`: Reference to languages table\n\n**Optional fields:**\n- `description`: Summary/description\n- `status`: Ongoing/Completed\n- `cover_image`: Cover image URL\n- `alternative_titles`: Array of alternative titles\n- `authors`: Array of author names\n- `artists`: Array of artist names\n- `genres`: Array of genre names\n- `type`: Manga/Manhwa/Manhua/Comic\n- `release_year`: Publication year"
+          }
+        },
+        {
+          "name": "Get Komik by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks", "1"]
+            },
+            "description": "Returns a single komik by ID with all details including metadata and related websites."
+          }
+        },
+        {
+          "name": "Update Komik",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"One Piece\",\n  \"slug\": \"one-piece\",\n  \"description\": \"A legendary pirate adventure\",\n  \"status\": \"Ongoing\",\n  \"cover_image\": \"https://example.com/cover.jpg\",\n  \"language_id\": 1,\n  \"alternative_titles\": [\"ONE PIECE\"],\n  \"authors\": [\"Eiichiro Oda\"],\n  \"artists\": [\"Eiichiro Oda\"],\n  \"genres\": [\"Action\", \"Adventure\"],\n  \"type\": \"Manga\",\n  \"release_year\": 1997\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks", "1"]
+            },
+            "description": "Updates an existing komik.\n\nAll fields are optional. Include only the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Komik",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks", "1"]
+            },
+            "description": "Deletes a komik by ID.\n\n**Warning**: This will cascade-delete all related komik-website mappings. Use with caution."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mappings",
+      "description": "Komik-to-website mapping management endpoints",
+      "item": [
+        {
+          "name": "List Mappings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komik-websites?page=1&limit=20&komik_id=&website_id=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komik-websites"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)",
+                  "disabled": true
+                },
+                {
+                  "key": "komik_id",
+                  "value": "",
+                  "description": "Filter by komik ID",
+                  "disabled": true
+                },
+                {
+                  "key": "website_id",
+                  "value": "",
+                  "description": "Filter by website ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns a paginated list of komik-to-website mappings.\n\nThese mappings define which source websites have a specific komik available.\nSupports filtering by `komik_id` and `website_id`."
+          }
+        },
+        {
+          "name": "Create Mapping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"komik_id\": 1,\n  \"website_id\": 1,\n  \"url\": \"https://komiku.org/manga/one-piece\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/komik-websites",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komik-websites"]
+            },
+            "description": "Creates a new mapping between a komik and a source website.\n\n**Fields:**\n- `komik_id` (required): Reference to komiks table\n- `website_id` (required): Reference to websites table\n- `url` (required): Source URL for this komik on the website"
+          }
+        },
+        {
+          "name": "Get Mapping by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komik-websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komik-websites", "1"]
+            },
+            "description": "Returns a single mapping by ID with all details."
+          }
+        },
+        {
+          "name": "Update Mapping",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"komik_id\": 1,\n  \"website_id\": 1,\n  \"url\": \"https://komiku.org/manga/one-piece\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/komik-websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komik-websites", "1"]
+            },
+            "description": "Updates an existing mapping.\n\nAll fields are optional. Include only the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Mapping",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komik-websites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komik-websites", "1"]
+            },
+            "description": "Deletes a mapping by ID."
+          }
+        },
+        {
+          "name": "Get Komik Websites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/komiks/1/websites",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "komiks", "1", "websites"]
+            },
+            "description": "Returns all source websites for a specific komik.\n\nThis is a convenience endpoint that fetches all mappings for a given komik and includes the website details."
+          }
+        }
+      ]
+    }
+  ]
+}
