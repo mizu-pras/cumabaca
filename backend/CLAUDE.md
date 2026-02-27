@@ -55,6 +55,36 @@ Create a `.env` file in the `backend/` directory:
 - **`DELETE /komik/cache?key=<key>`** - Delete specific cache entry
 - **`DELETE /komik/cache`** - Clear all cache entries
 
+### Admin API
+
+All admin routes are prefixed with `/admin`.
+
+#### Authentication
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/admin/auth/login` | POST | Login with `{username, password}` → sets httpOnly `admin_token` cookie |
+| `/admin/auth/logout` | POST | Clears `admin_token` cookie |
+| `/admin/auth/me` | GET | Returns current admin user (requires valid token) |
+
+**Auth:** JWT via httpOnly cookie (`admin_token`)
+**Middleware:** `middleware/auth.js` → `requireAuth()`
+
+#### Management Routes (authenticated)
+
+| Resource | Endpoints |
+|----------|-----------|
+| **Languages** | `GET /admin/languages`, `GET /admin/languages/:id`, `POST /admin/languages`, `PUT /admin/languages/:id`, `DELETE /admin/languages/:id` |
+| **Websites** | `GET /admin/websites`, `GET /admin/websites/:id`, `POST /admin/websites`, `PUT /admin/websites/:id`, `DELETE /admin/websites/:id` |
+| **Komiks** | `GET /admin/komiks`, `GET /admin/komiks/:id`, `POST /admin/komiks`, `PUT /admin/komiks/:id`, `DELETE /admin/komiks/:id` |
+| **Komik-Websites** | `GET /admin/komik-websites`, `GET /admin/komik-websites/:id`, `POST /admin/komik-websites`, `PUT /admin/komik-websites/:id`, `DELETE /admin/komik-websites/:id` |
+
+**Environment Variables:**
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JWT_SECRET` | Secret for signing JWT tokens | `change-this-secret-in-production` |
+| `ADMIN_JWT_EXPIRY` | Token expiry time | `24h` |
+
 ## Project Structure
 
 ```
@@ -67,10 +97,25 @@ backend/
 ├── controllers/
 │   ├── komikController.js     # Comic scraping logic
 │   ├── cacheController.js     # Cache management
-│   └── imageProxyController.js # Image proxy
+│   ├── imageProxyController.js # Image proxy
+│   ├── adminController.js     # Admin auth logic
+│   ├── languageController.js  # Languages CRUD
+│   ├── websiteController.js   # Websites CRUD
+│   └── komikController.js     # Komiks CRUD
+├── middleware/
+│   ├── auth.js                # JWT auth middleware (requireAuth)
+│   └── adminAuth.js           # Admin-specific auth (if exists)
+├── models/
+│   └── AdminUser.js           # Admin user model with password hashing
 ├── routes/
 │   ├── index.js               # Route index
-│   └── komik.js               # Comic scraping routes
+│   ├── komik.js               # Comic scraping routes
+│   ├── admin.js               # Admin auth routes
+│   └── admin/                 # Admin CRUD routes (protected)
+│       ├── languages.js
+│       ├── websites.js
+│       ├── komiks.js
+│       └── komik-websites.js
 ├── scrapers/
 │   ├── index.js               # Scraper registry/factory
 │   ├── komiku.js              # Komiku scraper
