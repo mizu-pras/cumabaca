@@ -20,8 +20,11 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 WORKDIR /app
 
 # Install ALL dependencies (including devDependencies for nodemon)
+RUN npm install -g pnpm
+
 COPY package.json ./
-RUN npm install --legacy-peer-deps
+# RUN npm install --legacy-peer-deps
+RUN pnpm install
 
 # Copy source files
 COPY . .
