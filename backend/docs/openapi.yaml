@@ -1,0 +1,2043 @@
+openapi: 3.0.3
+info:
+  title: Cuma Baca API
+  description: |
+    A minimalist comic scraper API that fetches content from multiple comic websites
+    and provides a clean, distraction-free reading experience with admin management capabilities.
+
+    ## Authentication
+
+    Admin endpoints require cookie-based authentication using JWT tokens stored in `admin_token` cookie.
+    Use the `/admin/auth/login` endpoint to authenticate and receive the authentication cookie.
+
+    ## Modes
+
+    - **Normal mode**: Default mode for SFW content
+    - **Secret mode**: Required for NSFW content sources (set `mode=secret` query parameter)
+
+    ## Pagination
+
+    List endpoints support pagination via query parameters:
+    - `page`: Page number (default: 1)
+    - `limit`: Items per page (default: 20)
+
+    ## Filtering
+
+    List endpoints support filtering via query parameters:
+    - `search`: Search in text fields
+    - `is_active`: Filter by active status (true/false)
+    - `language_id`: Filter by language ID
+    - `status`: Filter by status (for komiks)
+
+    ## Rate Limiting
+
+    Comic scraping endpoints are cached with 24-hour TTL to avoid redundant scraping requests.
+    First scrape may take 5-10 seconds, subsequent requests return in <50ms.
+  version: 1.0.0
+  contact:
+    name: Cuma Baca
+    url: https://github.com/cumabaca
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3100
+    description: Development server
+  - url: https://api.cumabaca.com
+    description: Production server
+
+tags:
+  - name: Comic Scraping
+    description: Public endpoints for scraping comic content
+  - name: Cache
+    description: Cache management and statistics
+  - name: Auth
+    description: Admin authentication endpoints
+  - name: Languages
+    description: Language management
+  - name: Websites
+    description: Source website management
+  - name: Komiks
+    description: Comic catalog management
+  - name: Mappings
+    description: Komik-to-website mapping management
+
+paths:
+  /komik/chapters:
+    get:
+      tags:
+        - Comic Scraping
+      summary: Get chapter list for a comic
+      description: |
+        Scrapes and returns the chapter list for a comic from the specified URL.
+
+        **Note**: First request may take 5-10 seconds. Subsequent requests are cached (24h TTL).
+      operationId: getChapters
+      parameters:
+        - name: url
+          in: query
+          description: URL of the comic page to scrape
+          required: true
+          schema:
+            type: string
+            format: uri
+            example: https://komiku.org/manga/one-piece
+        - name: mode
+          in: query
+          description: Content mode (required for NSFW sources)
+          schema:
+            type: string
+            enum: [normal, secret]
+            default: normal
+      responses:
+        '200':
+          description: Successful response with chapter list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: The URL that was scraped
+                  data:
+                    type: array
+                    description: List of chapters
+                    items:
+                      $ref: '#/components/schemas/Chapter'
+              examples:
+                success:
+                  value:
+                    url: https://komiku.org/manga/one-piece
+                    data:
+                      - title: Chapter 1
+                        url: https://komiku.org/manga/one-piece/chapter-1
+                      - title: Chapter 2
+                        url: https://komiku.org/manga/one-piece/chapter-2
+        '403':
+          description: NSFW content requires secret mode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NsfwError'
+        '404':
+          description: No chapters found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                  data:
+                    type: array
+                    items: {}
+                    maxItems: 0
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /komik/data:
+    get:
+      tags:
+        - Comic Scraping
+      summary: Get chapter data (images)
+      description: |
+        Scrapes and returns the images for a specific chapter.
+
+        **Note**: First request may take 5-10 seconds. Subsequent requests are cached (24h TTL).
+      operationId: getChapterData
+      parameters:
+        - name: url
+          in: query
+          description: URL of the chapter page to scrape
+          required: true
+          schema:
+            type: string
+            format: uri
+            example: https://komiku.org/manga/one-piece/chapter-1
+        - name: mode
+          in: query
+          description: Content mode (required for NSFW sources)
+          schema:
+            type: string
+            enum: [normal, secret]
+            default: normal
+      responses:
+        '200':
+          description: Successful response with chapter images
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterData'
+              examples:
+                success:
+                  value:
+                    title: One Piece - Chapter 1
+                    images:
+                      - https://komiku.org/images/chapter-1/001.jpg
+                      - https://komiku.org/images/chapter-1/002.jpg
+        '403':
+          description: NSFW content requires secret mode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NsfwError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /komik/image:
+    get:
+      tags:
+        - Comic Scraping
+      summary: Proxy image request
+      description: |
+        Proxies image requests to bypass CORS and hotlink protection.
+
+        Some sources (e.g., Komikcast) require this proxy to display images properly.
+        Sets appropriate CORS headers for cross-origin requests.
+      operationId: proxyImage
+      parameters:
+        - name: url
+          in: query
+          description: URL of the image to proxy
+          required: true
+          schema:
+            type: string
+            format: uri
+            example: https://v1.komikcast.fit/wp-content/uploads/2023/01/001.jpg
+      responses:
+        '200':
+          description: Image data streamed from source
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Type:
+              description: Image MIME type from source
+              schema:
+                type: string
+            Cache-Control:
+              description: Cache for 1 day
+              schema:
+                type: string
+                example: public, max-age=86400
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+                example: '*'
+        '400':
+          description: URL parameter required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: URL parameter required
+        '500':
+          description: Failed to fetch image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /komik/cache/stats:
+    get:
+      tags:
+        - Cache
+      summary: Get cache statistics
+      description: Returns cache statistics including total entries, expired entries, and size.
+      operationId: getCacheStats
+      responses:
+        '200':
+          description: Cache statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheStats'
+              example:
+                totalEntries: 42
+                expiredEntries: 0
+                totalSize: 125000
+                avgSize: 2976
+
+  /komik/cached-comics:
+    get:
+      tags:
+        - Cache
+      summary: Get cached comics list
+      description: |
+        Returns an array of cached comics with metadata.
+
+        Useful for monitoring which comics are cached and their expiry status.
+      operationId: getCachedComics
+      responses:
+        '200':
+          description: List of cached comics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CachedComic'
+              example:
+                - url: https://komiku.org/manga/one-piece
+                  title: One Piece
+                  domain: komiku.org
+                  cachedAt: '2025-01-15T10:30:00.000Z'
+                  expiresAt: '2025-01-16T10:30:00.000Z'
+                  isNsfw: false
+
+  /komik/cache:
+    delete:
+      tags:
+        - Cache
+      summary: Clear cache entries
+      description: |
+        Delete specific cache entry by key or clear all cache entries.
+
+        Use with caution - clearing all cache will result in slower initial requests.
+      operationId: clearCache
+      parameters:
+        - name: key
+          in: query
+          description: Specific cache key to delete (omit to clear all)
+          schema:
+            type: string
+            example: __express__/komik/chapters?url=https://komiku.org/manga/one-piece
+      responses:
+        '200':
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CacheClearedAll'
+                  - $ref: '#/components/schemas/CacheClearedOne'
+              examples:
+                clearedAll:
+                  value:
+                    success: true
+                    deletedEntries: 42
+                    message: Cleared 42 cache entries
+                clearedOne:
+                  value:
+                    success: true
+                    message: 'Cache entry deleted: __express__/komik/chapters?url=https://...'
+        '404':
+          description: Cache entry not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cache entry not found: ...'
+
+  /admin/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Admin login
+      description: |
+        Authenticates an admin user and sets a JWT cookie.
+
+        On successful login, an httpOnly cookie `admin_token` is set with a 24-hour expiry.
+      operationId: adminLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: admin
+              password: securepassword123
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: JWT authentication cookie (httpOnly, 24h expiry)
+              schema:
+                type: string
+                example: 'admin_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                user:
+                  id: 1
+                  username: admin
+                  email: admin@example.com
+                  last_login: '2025-01-15T10:30:00.000Z'
+        '400':
+          description: Missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Username and password are required
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid credentials
+
+  /admin/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Admin logout
+      description: Clears the authentication cookie.
+      operationId: adminLogout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+          headers:
+            Set-Cookie:
+              description: Cleared authentication cookie
+              schema:
+                type: string
+                example: 'admin_token=; Max-Age=0; HttpOnly; Secure'
+
+  /admin/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get current admin user
+      description: |
+        Returns the currently authenticated admin user from the JWT cookie.
+
+        Requires valid `admin_token` cookie.
+      operationId: getMe
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                user:
+                  id: 1
+                  username: admin
+                  email: admin@example.com
+                  last_login: '2025-01-15T10:30:00.000Z'
+        '401':
+          description: Not authenticated or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                notAuthenticated:
+                  value:
+                    error: Not authenticated
+                invalidToken:
+                  value:
+                    error: Invalid token
+                tokenExpired:
+                  value:
+                    error: Token expired
+
+  /admin/languages:
+    get:
+      tags:
+        - Languages
+      summary: Get all languages
+      description: |
+        Returns a paginated list of languages.
+
+        Supports filtering by `is_active` and searching by `name` or `code`.
+      operationId: getLanguages
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/IsActive'
+      responses:
+        '200':
+          description: List of languages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Languages
+      summary: Create a language
+      description: Creates a new language entry.
+      operationId: createLanguage
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageCreate'
+            example:
+              name: Japanese
+              code: ja
+      responses:
+        '201':
+          description: Language created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Name and code are required
+        '409':
+          description: Language code already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Language code already exists
+
+  /admin/languages/{id}:
+    get:
+      tags:
+        - Languages
+      summary: Get a language by ID
+      description: Returns a single language by ID.
+      operationId: getLanguageById
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Language data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+        '404':
+          description: Language not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Language not found
+
+    put:
+      tags:
+        - Languages
+      summary: Update a language
+      description: Updates an existing language.
+      operationId: updateLanguage
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageUpdate'
+            example:
+              name: Japanese
+              code: ja
+              is_active: true
+      responses:
+        '200':
+          description: Language updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+        '404':
+          description: Language not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Language not found
+
+    delete:
+      tags:
+        - Languages
+      summary: Delete a language
+      description: Soft deletes a language (sets is_active to false).
+      operationId: deleteLanguage
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Language deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Language deleted successfully
+        '404':
+          description: Language not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Language not found
+
+  /admin/websites:
+    get:
+      tags:
+        - Websites
+      summary: Get all websites
+      description: |
+        Returns a paginated list of comic source websites.
+
+        Supports filtering by `is_active`, `language_id`, and searching by `name` or `url`.
+      operationId: getWebsites
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/IsActive'
+        - name: language_id
+          in: query
+          description: Filter by language ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: List of websites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Websites
+      summary: Create a website
+      description: Creates a new comic source website.
+      operationId: createWebsite
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteCreate'
+            example:
+              name: Komiku
+              url: https://komiku.org
+              language_id: 1
+              use_browser: false
+              search_endpoint: /search
+              is_nsfw: false
+      responses:
+        '201':
+          description: Website created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Name and URL are required
+
+  /admin/websites/{id}:
+    get:
+      tags:
+        - Websites
+      summary: Get a website by ID
+      description: Returns a single website by ID.
+      operationId: getWebsiteById
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Website data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteResponse'
+        '404':
+          description: Website not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Website not found
+
+    put:
+      tags:
+        - Websites
+      summary: Update a website
+      description: Updates an existing website.
+      operationId: updateWebsite
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteUpdate'
+            example:
+              name: Komiku
+              url: https://komiku.org
+              language_id: 1
+              use_browser: false
+              search_endpoint: /search
+              is_nsfw: false
+              is_active: true
+      responses:
+        '200':
+          description: Website updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebsiteResponse'
+        '404':
+          description: Website not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Website not found
+
+    delete:
+      tags:
+        - Websites
+      summary: Delete a website
+      description: Soft deletes a website (sets is_active to false).
+      operationId: deleteWebsite
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Website deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Website deleted successfully
+        '404':
+          description: Website not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Website not found
+
+  /admin/komiks:
+    get:
+      tags:
+        - Komiks
+      summary: Get all komiks
+      description: |
+        Returns a paginated list of komiks (comics).
+
+        Supports filtering by `is_active`, `language_id`, `status`, and searching by `title` or `synopsis`.
+      operationId: getKomiks
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/IsActive'
+        - name: language_id
+          in: query
+          description: Filter by language ID
+          schema:
+            type: integer
+            example: 1
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [ongoing, completed, hiatus, dropped]
+            example: ongoing
+      responses:
+        '200':
+          description: List of komiks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KomikListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Komiks
+      summary: Create a komik
+      description: Creates a new komik entry.
+      operationId: createKomik
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KomikCreate'
+            example:
+              title: One Piece
+              synopsis: Follows the adventures of Monkey D. Luffy...
+              language_id: 1
+              cover_image: https://example.com/covers/one-piece.jpg
+              status: ongoing
+      responses:
+        '201':
+          description: Komik created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KomikResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Title is required
+
+  /admin/komiks/{id}:
+    get:
+      tags:
+        - Komiks
+      summary: Get a komik by ID
+      description: Returns a single komik by ID.
+      operationId: getKomikById
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Komik data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KomikResponse'
+        '404':
+          description: Komik not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Komik not found
+
+    put:
+      tags:
+        - Komiks
+      summary: Update a komik
+      description: Updates an existing komik.
+      operationId: updateKomik
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KomikUpdate'
+            example:
+              title: One Piece
+              synopsis: Follows the adventures of Monkey D. Luffy...
+              language_id: 1
+              cover_image: https://example.com/covers/one-piece.jpg
+              status: ongoing
+              is_active: true
+      responses:
+        '200':
+          description: Komik updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KomikResponse'
+        '404':
+          description: Komik not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Komik not found
+
+    delete:
+      tags:
+        - Komiks
+      summary: Delete a komik
+      description: Soft deletes a komik (sets is_active to false).
+      operationId: deleteKomik
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Komik deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Komik deleted successfully
+        '404':
+          description: Komik not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Komik not found
+
+  /admin/komiks/{id}/websites:
+    get:
+      tags:
+        - Komiks
+      summary: Get websites for a komik
+      description: |
+        Returns all website mappings (source URLs) for a specific komik.
+
+        Useful for finding all sources where a komik is available.
+      operationId: getKomikWebsites
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: List of website mappings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KomikWebsite'
+        '404':
+          description: Komik not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Komik not found
+
+  /admin/komik-websites:
+    get:
+      tags:
+        - Mappings
+      summary: Get all komik-website mappings
+      description: |
+        Returns a paginated list of komik-to-website mappings.
+
+        These mappings define which source URLs correspond to which komiks.
+      operationId: getKomikWebsites
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: komik_id
+          in: query
+          description: Filter by komik ID
+          schema:
+            type: integer
+            example: 1
+        - name: website_id
+          in: query
+          description: Filter by website ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: List of mappings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KomikWebsite'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Mappings
+      summary: Create a komik-website mapping
+      description: |
+        Creates a new mapping between a komik and a source website.
+
+        Verifies that both the komik and website exist before creating the mapping.
+      operationId: createKomikWebsite
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KomikWebsiteCreate'
+            example:
+              komik_id: 1
+              website_id: 1
+              url: https://komiku.org/manga/one-piece
+              total_chapters: 1000
+      responses:
+        '201':
+          description: Mapping created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/KomikWebsite'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Komik ID, Website ID, and URL are required
+        '404':
+          description: Komik or website not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                komikNotFound:
+                  value:
+                    error: Komik not found
+                websiteNotFound:
+                  value:
+                    error: Website not found
+        '409':
+          description: Mapping already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: This komik is already linked to this website
+
+  /admin/komik-websites/{id}:
+    get:
+      tags:
+        - Mappings
+      summary: Get a mapping by ID
+      description: Returns a single komik-website mapping by ID.
+      operationId: getKomikWebsiteById
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Mapping data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/KomikWebsite'
+        '404':
+          description: Mapping not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Mapping not found
+
+    put:
+      tags:
+        - Mappings
+      summary: Update a mapping
+      description: Updates an existing komik-website mapping.
+      operationId: updateKomikWebsite
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KomikWebsiteUpdate'
+            example:
+              url: https://komiku.org/manga/one-piece
+              total_chapters: 1001
+              last_checked_at: '2025-01-15T10:30:00.000Z'
+      responses:
+        '200':
+          description: Mapping updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/KomikWebsite'
+        '404':
+          description: Mapping not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Mapping not found
+
+    delete:
+      tags:
+        - Mappings
+      summary: Delete a mapping
+      description: Permanently deletes a komik-website mapping.
+      operationId: deleteKomikWebsite
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Mapping deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Mapping deleted successfully
+        '404':
+          description: Mapping not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Mapping not found
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: admin_token
+      description: |
+        JWT authentication cookie set by login endpoint.
+
+        Cookie is httpOnly, secure (in production), and has SameSite=strict.
+        Valid for 24 hours from login.
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      description: Resource ID
+      required: true
+      schema:
+        type: integer
+        example: 1
+
+    Page:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+    Search:
+      name: search
+      in: query
+      description: Search term (searches in text fields)
+      schema:
+        type: string
+        example: one piece
+
+    IsActive:
+      name: is_active
+      in: query
+      description: Filter by active status
+      schema:
+        type: boolean
+        example: true
+
+  schemas:
+    Chapter:
+      type: object
+      description: A chapter from a comic
+      properties:
+        title:
+          type: string
+          description: Chapter title
+          example: Chapter 1
+        url:
+          type: string
+          format: uri
+          description: Chapter page URL
+          example: https://komiku.org/manga/one-piece/chapter-1
+      required:
+        - title
+        - url
+
+    ChapterData:
+      type: object
+      description: Chapter data including title and images
+      properties:
+        title:
+          type: string
+          description: Chapter title
+          example: One Piece - Chapter 1
+        images:
+          type: array
+          description: List of image URLs
+          items:
+            type: string
+            format: uri
+          example:
+            - https://komiku.org/images/chapter-1/001.jpg
+            - https://komiku.org/images/chapter-1/002.jpg
+      required:
+        - title
+        - images
+
+    NsfwError:
+      type: object
+      description: Error response for NSFW content access without secret mode
+      properties:
+        error:
+          type: string
+          example: NSFW content
+        nsfw:
+          type: boolean
+          example: true
+        useSecretMode:
+          type: boolean
+          example: true
+      required:
+        - error
+        - nsfw
+        - useSecretMode
+
+    Error:
+      type: object
+      description: Error response
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Internal server error
+      required:
+        - error
+
+    CacheStats:
+      type: object
+      description: Cache statistics
+      properties:
+        totalEntries:
+          type: integer
+          description: Total number of cache entries
+          example: 42
+        expiredEntries:
+          type: integer
+          description: Number of expired entries
+          example: 0
+        totalSize:
+          type: integer
+          description: Total cache size in bytes
+          example: 125000
+        avgSize:
+          type: integer
+          description: Average entry size in bytes
+          example: 2976
+      required:
+        - totalEntries
+        - expiredEntries
+        - totalSize
+        - avgSize
+
+    CachedComic:
+      type: object
+      description: A cached comic entry
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Comic URL
+          example: https://komiku.org/manga/one-piece
+        title:
+          type: string
+          description: Comic title
+          example: One Piece
+        domain:
+          type: string
+          description: Source domain
+          example: komiku.org
+        cachedAt:
+          type: string
+          format: date-time
+          description: When the cache was created
+          example: '2025-01-15T10:30:00.000Z'
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the cache expires
+          example: '2025-01-16T10:30:00.000Z'
+        isNsfw:
+          type: boolean
+          description: Whether the content is NSFW
+          example: false
+      required:
+        - url
+        - title
+        - domain
+        - cachedAt
+        - expiresAt
+        - isNsfw
+
+    CacheClearedAll:
+      type: object
+      description: Response when clearing all cache entries
+      properties:
+        success:
+          type: boolean
+          example: true
+        deletedEntries:
+          type: integer
+          description: Number of entries deleted
+          example: 42
+        message:
+          type: string
+          example: Cleared 42 cache entries
+      required:
+        - success
+        - deletedEntries
+        - message
+
+    CacheClearedOne:
+      type: object
+      description: Response when clearing a single cache entry
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 'Cache entry deleted: __express__/komik/chapters?url=https://...'
+      required:
+        - success
+        - message
+
+    LoginRequest:
+      type: object
+      description: Admin login request
+      properties:
+        username:
+          type: string
+          description: Admin username
+          example: admin
+        password:
+          type: string
+          format: password
+          description: Admin password
+          example: securepassword123
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      description: Admin login/get user response
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: User ID
+              example: 1
+            username:
+              type: string
+              description: Username
+              example: admin
+            email:
+              type: string
+              format: email
+              description: User email
+              example: admin@example.com
+            last_login:
+              type: string
+              format: date-time
+              description: Last login timestamp
+              example: '2025-01-15T10:30:00.000Z'
+            created_at:
+              type: string
+              format: date-time
+              description: Account creation timestamp
+              example: '2025-01-01T00:00:00.000Z'
+          required:
+            - id
+            - username
+      required:
+        - user
+
+    Language:
+      type: object
+      description: A language entry
+      properties:
+        id:
+          type: integer
+          description: Language ID
+          example: 1
+        name:
+          type: string
+          description: Language name
+          example: Japanese
+        code:
+          type: string
+          description: ISO 639-1 language code
+          example: ja
+        is_active:
+          type: boolean
+          description: Whether the language is active
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T00:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2025-01-15T10:30:00.000Z'
+      required:
+        - id
+        - name
+        - code
+        - is_active
+
+    LanguageCreate:
+      type: object
+      description: Language creation request
+      properties:
+        name:
+          type: string
+          description: Language name
+          example: Japanese
+        code:
+          type: string
+          description: ISO 639-1 language code
+          example: ja
+      required:
+        - name
+        - code
+
+    LanguageUpdate:
+      type: object
+      description: Language update request
+      properties:
+        name:
+          type: string
+          description: Language name
+          example: Japanese
+        code:
+          type: string
+          description: ISO 639-1 language code
+          example: ja
+        is_active:
+          type: boolean
+          description: Whether the language is active
+          example: true
+
+    LanguageResponse:
+      type: object
+      description: Language response
+      properties:
+        data:
+          $ref: '#/components/schemas/Language'
+      required:
+        - data
+
+    LanguageListResponse:
+      type: object
+      description: Language list response with pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
+
+    Website:
+      type: object
+      description: A comic source website
+      properties:
+        id:
+          type: integer
+          description: Website ID
+          example: 1
+        name:
+          type: string
+          description: Website name
+          example: Komiku
+        url:
+          type: string
+          format: uri
+          description: Website base URL
+          example: https://komiku.org
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        language_name:
+          type: string
+          nullable: true
+          description: Primary language name (joined)
+          example: Japanese
+        language_code:
+          type: string
+          nullable: true
+          description: Primary language code (joined)
+          example: ja
+        use_browser:
+          type: boolean
+          description: Whether the site requires headless browser for scraping
+          example: false
+        search_endpoint:
+          type: string
+          nullable: true
+          description: Search endpoint path
+          example: /search
+        is_nsfw:
+          type: boolean
+          description: Whether the site contains NSFW content
+          example: false
+        is_active:
+          type: boolean
+          description: Whether the website is active
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T00:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2025-01-15T10:30:00.000Z'
+      required:
+        - id
+        - name
+        - url
+        - is_active
+
+    WebsiteCreate:
+      type: object
+      description: Website creation request
+      properties:
+        name:
+          type: string
+          description: Website name
+          example: Komiku
+        url:
+          type: string
+          format: uri
+          description: Website base URL
+          example: https://komiku.org
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        use_browser:
+          type: boolean
+          description: Whether the site requires headless browser for scraping
+          example: false
+        search_endpoint:
+          type: string
+          nullable: true
+          description: Search endpoint path
+          example: /search
+        is_nsfw:
+          type: boolean
+          description: Whether the site contains NSFW content
+          example: false
+      required:
+        - name
+        - url
+
+    WebsiteUpdate:
+      type: object
+      description: Website update request
+      properties:
+        name:
+          type: string
+          description: Website name
+          example: Komiku
+        url:
+          type: string
+          format: uri
+          description: Website base URL
+          example: https://komiku.org
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        use_browser:
+          type: boolean
+          description: Whether the site requires headless browser for scraping
+          example: false
+        search_endpoint:
+          type: string
+          nullable: true
+          description: Search endpoint path
+          example: /search
+        is_nsfw:
+          type: boolean
+          description: Whether the site contains NSFW content
+          example: false
+        is_active:
+          type: boolean
+          description: Whether the website is active
+          example: true
+
+    WebsiteResponse:
+      type: object
+      description: Website response
+      properties:
+        data:
+          $ref: '#/components/schemas/Website'
+      required:
+        - data
+
+    WebsiteListResponse:
+      type: object
+      description: Website list response with pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Website'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
+
+    Komik:
+      type: object
+      description: A comic entry
+      properties:
+        id:
+          type: integer
+          description: Komik ID
+          example: 1
+        title:
+          type: string
+          description: Comic title
+          example: One Piece
+        synopsis:
+          type: string
+          nullable: true
+          description: Comic synopsis
+          example: Follows the adventures of Monkey D. Luffy...
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        language_name:
+          type: string
+          nullable: true
+          description: Primary language name (joined)
+          example: Japanese
+        language_code:
+          type: string
+          nullable: true
+          description: Primary language code (joined)
+          example: ja
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+          description: Cover image URL
+          example: https://example.com/covers/one-piece.jpg
+        status:
+          type: string
+          enum: [ongoing, completed, hiatus, dropped]
+          description: Publication status
+          example: ongoing
+        is_active:
+          type: boolean
+          description: Whether the komik is active
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T00:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2025-01-15T10:30:00.000Z'
+      required:
+        - id
+        - title
+        - is_active
+        - status
+
+    KomikCreate:
+      type: object
+      description: Komik creation request
+      properties:
+        title:
+          type: string
+          description: Comic title
+          example: One Piece
+        synopsis:
+          type: string
+          nullable: true
+          description: Comic synopsis
+          example: Follows the adventures of Monkey D. Luffy...
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+          description: Cover image URL
+          example: https://example.com/covers/one-piece.jpg
+        status:
+          type: string
+          enum: [ongoing, completed, hiatus, dropped]
+          description: Publication status
+          example: ongoing
+      required:
+        - title
+
+    KomikUpdate:
+      type: object
+      description: Komik update request
+      properties:
+        title:
+          type: string
+          description: Comic title
+          example: One Piece
+        synopsis:
+          type: string
+          nullable: true
+          description: Comic synopsis
+          example: Follows the adventures of Monkey D. Luffy...
+        language_id:
+          type: integer
+          nullable: true
+          description: Primary language ID
+          example: 1
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+          description: Cover image URL
+          example: https://example.com/covers/one-piece.jpg
+        status:
+          type: string
+          enum: [ongoing, completed, hiatus, dropped]
+          description: Publication status
+          example: ongoing
+        is_active:
+          type: boolean
+          description: Whether the komik is active
+          example: true
+
+    KomikResponse:
+      type: object
+      description: Komik response
+      properties:
+        data:
+          $ref: '#/components/schemas/Komik'
+      required:
+        - data
+
+    KomikListResponse:
+      type: object
+      description: Komik list response with pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Komik'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
+
+    KomikWebsite:
+      type: object
+      description: A mapping between a komik and a source website
+      properties:
+        id:
+          type: integer
+          description: Mapping ID
+          example: 1
+        komik_id:
+          type: integer
+          description: Komik ID
+          example: 1
+        website_id:
+          type: integer
+          description: Website ID
+          example: 1
+        url:
+          type: string
+          format: uri
+          description: Source URL for this komik on this website
+          example: https://komiku.org/manga/one-piece
+        total_chapters:
+          type: integer
+          description: Total chapters available at this source
+          example: 1000
+        komik_title:
+          type: string
+          nullable: true
+          description: Komik title (joined)
+          example: One Piece
+        website_name:
+          type: string
+          nullable: true
+          description: Website name (joined)
+          example: Komiku
+        website_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Website URL (joined)
+          example: https://komiku.org
+        last_checked_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last time this source was checked
+          example: '2025-01-15T10:30:00.000Z'
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-01T00:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2025-01-15T10:30:00.000Z'
+      required:
+        - id
+        - komik_id
+        - website_id
+        - url
+        - total_chapters
+
+    KomikWebsiteCreate:
+      type: object
+      description: Komik-website mapping creation request
+      properties:
+        komik_id:
+          type: integer
+          description: Komik ID
+          example: 1
+        website_id:
+          type: integer
+          description: Website ID
+          example: 1
+        url:
+          type: string
+          format: uri
+          description: Source URL for this komik on this website
+          example: https://komiku.org/manga/one-piece
+        total_chapters:
+          type: integer
+          description: Total chapters available at this source
+          example: 1000
+      required:
+        - komik_id
+        - website_id
+        - url
+
+    KomikWebsiteUpdate:
+      type: object
+      description: Komik-website mapping update request
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Source URL for this komik on this website
+          example: https://komiku.org/manga/one-piece
+        total_chapters:
+          type: integer
+          description: Total chapters available at this source
+          example: 1000
+        last_checked_at:
+          type: string
+          format: date-time
+          description: Last time this source was checked
+          example: '2025-01-15T10:30:00.000Z'
+
+    Pagination:
+      type: object
+      description: Pagination metadata
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          description: Total number of items
+          example: 42
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 3
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
