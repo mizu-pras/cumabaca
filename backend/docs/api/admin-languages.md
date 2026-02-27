@@ -17,7 +17,7 @@ Get paginated list of languages.
 | `page` | integer | No | 1 | Page number |
 | `limit` | integer | No | 20 | Items per page |
 | `search` | string | No | - | Search in name/code |
-| `is_active` | boolean | No | - | Filter by active status |
+| `is_active` | string | No | - | Filter by active status ("true" or "false") |
 
 ### Request Example (cURL)
 
@@ -58,6 +58,8 @@ const data = await response.json();
 }
 ```
 
+**Note:** `is_active` is returned as an integer (0 or 1) in responses.
+
 ### Error Responses
 
 | Status | Description |
@@ -78,6 +80,15 @@ curl "http://localhost:3100/admin/languages/1" \
   -b cookies.txt
 ```
 
+### Request Example (JavaScript)
+
+```javascript
+const response = await fetch('http://localhost:3100/admin/languages/1', {
+  credentials: 'include'
+});
+const data = await response.json();
+```
+
 ### Response (200 OK)
 
 ```json
@@ -92,6 +103,8 @@ curl "http://localhost:3100/admin/languages/1" \
   }
 }
 ```
+
+**Note:** `is_active` is returned as an integer (0 or 1) in responses.
 
 ### Error Responses
 
@@ -182,6 +195,22 @@ curl -X PUT "http://localhost:3100/admin/languages/1" \
   -d '{"name":"Japanese (Updated)","code":"ja","is_active":true}'
 ```
 
+### Request Example (JavaScript)
+
+```javascript
+const response = await fetch('http://localhost:3100/admin/languages/1', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({
+    name: 'Japanese (Updated)',
+    code: 'ja',
+    is_active: true
+  })
+});
+const data = await response.json();
+```
+
 ### Response (200 OK)
 
 ```json
@@ -195,6 +224,8 @@ curl -X PUT "http://localhost:3100/admin/languages/1" \
   }
 }
 ```
+
+**Note:** Request accepts `is_active` as boolean (true/false), but response returns it as integer (0 or 1).
 
 ### Error Responses
 
@@ -216,6 +247,16 @@ Soft delete a language (sets `is_active=0`).
 ```bash
 curl -X DELETE "http://localhost:3100/admin/languages/1" \
   -b cookies.txt
+```
+
+### Request Example (JavaScript)
+
+```javascript
+const response = await fetch('http://localhost:3100/admin/languages/1', {
+  method: 'DELETE',
+  credentials: 'include'
+});
+const data = await response.json();
 ```
 
 ### Response (200 OK)
