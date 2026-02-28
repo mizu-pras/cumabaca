@@ -19,12 +19,13 @@ WORKDIR /app
 # Dependencies stage
 FROM base AS deps
 COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
+RUN corepack enable pnpm && pnpm install --no-frozen-lockfile
 
 # Development stage
 FROM base AS development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN corepack enable pnpm
 ENV NODE_ENV=development
 CMD ["pnpm", "run", "dev"]
 
@@ -32,6 +33,7 @@ CMD ["pnpm", "run", "dev"]
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN corepack enable pnpm
 ENV NODE_ENV=production
 RUN pnpm run build
 
