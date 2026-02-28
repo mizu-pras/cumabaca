@@ -3,10 +3,17 @@ const { websites } = require('../config/websites');
 
 /**
  * Get website configuration for a URL
+ * Auto-fixes URLs missing protocol by prepending https://
  */
 function getWebsiteConfig(url) {
     try {
-        const urlObj = new URL(url);
+        // Prepend https:// if URL is missing protocol
+        let fullUrl = url;
+        if (!url.match(/^https?:\/\//i)) {
+            fullUrl = 'https://' + url;
+        }
+
+        const urlObj = new URL(fullUrl);
         const hostname = urlObj.hostname;
 
         for (const [key, config] of Object.entries(websites)) {
@@ -54,8 +61,14 @@ async function getChapters(req, res, next) {
             });
         }
 
+        // Ensure URL has protocol for scraper service
+        let fullUrl = url;
+        if (!url.match(/^https?:\/\//i)) {
+            fullUrl = 'https://' + url;
+        }
+
         // Call scraper service
-        const result = await scraperClient.getChapters(url, mode);
+        const result = await scraperClient.getChapters(fullUrl, mode);
 
         // Handle empty results
         if (result.data && result.data.length === 0) {
@@ -114,8 +127,14 @@ async function getChapterData(req, res, next) {
             });
         }
 
+        // Ensure URL has protocol for scraper service
+        let fullUrl = url;
+        if (!url.match(/^https?:\/\//i)) {
+            fullUrl = 'https://' + url;
+        }
+
         // Call scraper service
-        const result = await scraperClient.getData(url, mode);
+        const result = await scraperClient.getData(fullUrl, mode);
 
         res.json(result);
 
