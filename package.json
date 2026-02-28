@@ -5,15 +5,18 @@
     "description": "Cuma Baca - A minimalist comic scraper with monorepo architecture",
     "workspaces": [
         "backend",
-        "frontend"
+        "frontend",
+        "admin",
+        "scraper"
     ],
     "scripts": {
-        "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+        "dev": "concurrently \"pnpm:dev:scraper\" \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
         "dev:backend": "podman-compose -f docker-compose.dev.yml up",
         "dev:frontend": "pnpm --filter cumabaca-frontend dev",
         "dev:admin": "pnpm --filter cumabaca-admin dev",
-        "build": "pnpm --filter cumabaca-frontend build",
-        "build:admin": "pnpm --filter cumabaca-admin build"
+        "dev:scraper": "pnpm --filter @cumabaca/scraper dev",
+        "dev:all": "concurrently \"pnpm:dev:scraper\" \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
+        "build": "pnpm --filter \"./backend/**\" --filter \"./frontend/**\" --filter \"./admin/**\" --filter \"./scraper/**\" build"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
