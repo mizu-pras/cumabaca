@@ -60,7 +60,7 @@ export async function scrapeChapters(req, res, next) {
 
     // Get scraper and extract data
     const scraper = getScraperForDomain(url);
-    const chapters = scraper.getChapters($, new URL(url).hostname);
+    const chapters = scraper.getChapters($, new URL(url).origin);
 
     const scrapeTime = Date.now() - startTime;
 
