@@ -17,6 +17,29 @@ services:
       timeout: 5s
       retries: 3
 
+  scraper:
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+      target: production
+    container_name: cumabaca-scraper
+    restart: unless-stopped
+    ports:
+      - "3200:3200"
+    environment:
+      - NODE_ENV=production
+      - PORT=3200
+      - MONGODB_URI=mongodb://mongodb:27017/cumabaca
+      - SCRAPER_CACHE_TTL=172800
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   backend:
     build:
       context: ./backend
@@ -31,8 +54,12 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/cumabaca
       - CACHE_TTL=86400
       - CORS_ORIGIN=https://your-frontend-domain.vercel.app
+      - SCRAPER_URL=http://scraper:3200
+      - SCRAPER_TIMEOUT=30000
     depends_on:
       mongodb:
+        condition: service_healthy
+      scraper:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
