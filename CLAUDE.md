@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Cuma Baca (meaning "Just Read") is a minimalist comic scraper that fetches content from multiple comic websites (komiku.org, komikcast.fit, sektedoujin.cc) and provides a clean, distraction-free reading experience.
 
-**Monorepo:** pnpm workspace with 3 workspaces - `backend`, `frontend`, `admin`
+**Monorepo:** pnpm workspace with 4 workspaces - `backend`, `scraper`, `frontend`, `admin`
 
 **IMPORTANT:** This project requires **pnpm** as the package manager. npm commands will fail.
 
@@ -27,8 +27,10 @@ pnpm run dev
 
 # Individual workspaces
 pnpm run dev:backend    # Backend with MongoDB (podman-compose), port 3100
+pnpm run dev:scraper    # Scraper service, port 3200
 pnpm run dev:frontend   # Frontend (Vite), port 5173
 pnpm run dev:admin      # Admin panel (Vite), port 5174
+pnpm run dev:all        # All services (Scraper + Backend + Frontend + Admin)
 
 # Build
 pnpm run build
@@ -38,7 +40,8 @@ pnpm run build
 
 | Workspace | Port | Purpose | CLAUDE.md |
 |-----------|------|---------|-----------|
-| `backend/` | 3100 | Express API + scrapers + MongoDB cache | [backend/CLAUDE.md](./backend/CLAUDE.md) |
+| `backend/` | 3100 | Express API + proxy to scraper | [backend/CLAUDE.md](./backend/CLAUDE.md) |
+| `scraper/` | 3200 | Scraping service | [scraper/CLAUDE.md](./scraper/CLAUDE.md) |
 | `frontend/` | 5173 | Public comic reader (React 19 + Vite) | [frontend/CLAUDE.md](./frontend/CLAUDE.md) |
 | `admin/` | 5174 | Admin panel for managing content | [admin/CLAUDE.md](./admin/CLAUDE.md) |
 
@@ -54,6 +57,16 @@ pnpm run build
 | `CORS_ORIGIN` | `*` (dev) |
 | `JWT_SECRET` | `change-this-secret-in-production` |
 | `ADMIN_JWT_EXPIRY` | `24h` |
+| `SCRAPER_URL` | `http://localhost:3200` |
+| `SCRAPER_TIMEOUT` | `30000` |
+
+### Scraper (`scraper/.env`)
+| Variable | Default |
+|----------|---------|
+| `NODE_ENV` | `development` |
+| `PORT` | `3200` |
+| `MONGODB_URI` | `mongodb://localhost:27017/cumabaca` |
+| `SCRAPER_CACHE_TTL` | `172800` (48 hours) |
 
 ### Frontend (`frontend/.env`)
 | Variable | Default |
@@ -75,15 +88,24 @@ cumabaca/
 ├── README.md                      # User documentation
 ├── DOCKER.md                      # Docker documentation
 │
-├── backend/                       # Express API + scrapers
+├── backend/                       # Express API
 │   ├── CLAUDE.md                  # Backend-specific guidance
 │   ├── routes/
-│   │   ├── komik.js               # Public comic scraping API
+│   │   ├── komik.js               # Public comic scraping API (proxies to scraper)
 │   │   ├── admin.js               # Admin auth
+│   │   ├── health.js              # Health check with scraper status
 │   │   └── admin/                 # Admin CRUD routes (languages, websites, komiks)
-│   ├── scrapers/                  # Website scraper implementations
 │   ├── controllers/               # Business logic
-│   └── middleware/                # Auth middleware (JWT)
+│   └── middleware/                # Auth middleware (JWT) and scraper client
+│
+├── scraper/                       # Scraping service
+│   ├── CLAUDE.md                  # Scraper-specific guidance
+│   ├── routes/
+│   │   └── scrape.js              # Scraping API endpoints
+│   ├── controllers/               # Scraping logic
+│   ├── scrapers/                  # Website scraper implementations
+│   ├── utils/                     # Cache and fetch utilities
+│   └── config/                    # Website configurations
 │
 ├── frontend/                      # Public comic reader
 │   ├── CLAUDE.md                  # Frontend-specific guidance
@@ -117,8 +139,13 @@ cumabaca/
 
 ### Backend
 - Express.js with MongoDB cache
-- Modular scrapers (Cheerio + Puppeteer for JS-rendered sites)
+- Proxies scraping requests to scraper service
 - Admin panel with JWT auth
+
+### Scraper
+- Express.js service dedicated to scraping
+- MongoDB cache for scraped content (48-hour TTL)
+- Modular scrapers (Cheerio + Puppeteer for JS-rendered sites)
 
 ### Frontend
 - React 19 + Vite + Tailwind v4
