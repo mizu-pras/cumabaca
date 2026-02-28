@@ -1,4 +1,4 @@
-import { getScraperCache, setScraperCache, clearScraperCache } from '../utils/mongodb-cache.js';
+import { getScraperCache, setScraperCache, getScraperCacheStats, clearScraperCache } from '../utils/mongodb-cache.js';
 import { fetchData, fetchDataWithBrowser } from '../utils/fetch.js';
 import { getScraperForDomain, getWebsiteConfig } from '../scrapers/index.js';
 

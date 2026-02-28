@@ -10,8 +10,14 @@ const scrapers = {
 };
 
 export function getScraperForDomain(domain) {
-    // Extract hostname from domain (remove protocol)
-    const hostname = domain.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+    // Extract hostname from URL (remove protocol and path)
+    let hostname;
+    try {
+        hostname = new URL(domain).hostname;
+    } catch {
+        // If not a valid URL, assume it's already a hostname
+        hostname = domain.replace(/^https?:\/\//, '').replace(/:\d+$/, '').split('/')[0];
+    }
 
     // Find which website config matches this domain
     for (const [key, config] of Object.entries(websites)) {
@@ -32,7 +38,14 @@ export function getScraper(websiteKey) {
 }
 
 export function getWebsiteConfig(domain) {
-    const hostname = domain.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
+    // Extract hostname from URL (remove protocol and path)
+    let hostname;
+    try {
+        hostname = new URL(domain).hostname;
+    } catch {
+        // If not a valid URL, assume it's already a hostname
+        hostname = domain.replace(/^https?:\/\//, '').replace(/:\d+$/, '').split('/')[0];
+    }
 
     for (const [key, config] of Object.entries(websites)) {
         if (config.domains.some(d => hostname === d || hostname.endsWith('.' + d))) {
