@@ -16,27 +16,24 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
 # Development stage
 FROM base AS development
 
 COPY package.json ./
-RUN pnpm install
+RUN npm install
 
 COPY . .
 
 ENV NODE_ENV=development
 EXPOSE 3200
 
-CMD ["pnpm", "run", "dev"]
+CMD ["npm", "run", "dev"]
 
 # Production stage
 FROM base AS production
 
 COPY package.json ./
-RUN pnpm install --prod
+RUN npm install --production
 
 COPY . .
 
