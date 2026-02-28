@@ -140,12 +140,13 @@ async function getChapterData(req, res, next) {
         const result = await scraperClient.getData(fullUrl, mode);
 
         // Unwrap scraper response for backward compatibility
-        // Frontend expects: { data: [array of images] }
         // Scraper returns: { success: true, data: { title, data: [...] }, ... }
-        const images = result.data?.data || result.data;
+        // Frontend expects: { title: "...", data: [array of images] }
+        const chapterData = result.data;
 
         res.json({
-            data: images
+            title: chapterData?.title,
+            data: chapterData?.data || []
         });
 
     } catch (error) {
