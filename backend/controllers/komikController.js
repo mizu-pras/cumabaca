@@ -1,5 +1,5 @@
-import scraperClient from '../middleware/scraperClient.js';
-import { websites } from '../config/websites.js';
+const scraperClient = require('../middleware/scraperClient');
+const { websites } = require('../config/websites');
 
 /**
  * Get website configuration for a URL
@@ -24,7 +24,7 @@ function getWebsiteConfig(url) {
  * GET /komik/chapters?url=<comic-url>&mode=<normal|secret>
  * Returns chapter list for a comic
  */
-export async function getChapters(req, res, next) {
+async function getChapters(req, res, next) {
     const { url, mode = 'normal' } = req.query;
 
     if (!url) {
@@ -84,7 +84,7 @@ export async function getChapters(req, res, next) {
  * GET /komik/data?url=<chapter-url>&mode=<normal|secret>
  * Returns images for a specific chapter
  */
-export async function getChapterData(req, res, next) {
+async function getChapterData(req, res, next) {
     const { url, mode = 'normal' } = req.query;
 
     if (!url) {
@@ -130,3 +130,8 @@ export async function getChapterData(req, res, next) {
         next(error);
     }
 }
+
+module.exports = {
+    getChapters,
+    getChapterData,
+};

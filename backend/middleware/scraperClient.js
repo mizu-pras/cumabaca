@@ -1,4 +1,4 @@
-import axios from 'axios';
+const axios = require('axios');
 
 const SCRAPER_URL = process.env.SCRAPER_URL || 'http://localhost:3200';
 const SCRAPER_TIMEOUT = parseInt(process.env.SCRAPER_TIMEOUT || '30000');
@@ -129,4 +129,4 @@ class ScraperClient {
 // Singleton instance
 const scraperClient = new ScraperClient();
 
-export default scraperClient;
+module.exports = scraperClient;

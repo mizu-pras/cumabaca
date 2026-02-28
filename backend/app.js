@@ -11,6 +11,7 @@ const { connectToDatabase } = require('./config/database');
 const komikRouter = require('./routes/komik');
 const adminRouter = require('./routes/admin');
 const swaggerUi = require('./swagger-ui');
+const healthRouter = require('./routes/health');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(express.static('public'));
 // API Routes
 app.use('/komik', komikRouter);
 app.use('/admin', adminRouter);
+app.use('/health', healthRouter);
 
 // Serve React static assets in production
 if (process.env.NODE_ENV === 'production') {
