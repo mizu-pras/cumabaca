@@ -18,8 +18,7 @@ services:
     ports:
       - "3200:3200"
     volumes:
-      - ./scraper:/app:Z
-      - scraper_node_modules:/app/node_modules
+      - ./scraper/src:/app/src:Z
     environment:
       - NODE_ENV=development
       - PORT=3200
@@ -52,4 +51,3 @@ services:
 volumes:
   mongodb_data:
   backend_node_modules:
-  scraper_node_modules:
