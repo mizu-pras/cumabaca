@@ -27,7 +27,9 @@ COPY . .
 ENV NODE_ENV=development
 EXPOSE 3200
 
-CMD ["npm", "run", "dev"]
+# Use node directly - file changes are handled via volume mount
+# For hot-reload in development, restart the container
+CMD ["node", "src/bin/www"]
 
 # Production stage
 FROM base AS production
