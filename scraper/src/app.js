@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import scrapeRoutes from './routes/scrape.js';
 
 const app = express();
 
@@ -27,8 +28,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Routes (will be added in next tasks)
-// app.use('/scrape', scrapeRoutes);
+// Scraping routes
+app.use('/scrape', scrapeRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
