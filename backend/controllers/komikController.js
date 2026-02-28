@@ -1,81 +1,132 @@
-const {
-    fetchData,
-    fetchDataWithBrowser,
-    validateUrl,
-} = require('../utils/index');
-const { getScraperForDomain, getWebsiteConfig } = require('../scrapers');
+import scraperClient from '../middleware/scraperClient.js';
+import { websites } from '../config/websites.js';
 
 /**
- * Komik controller - handles chapter list and chapter data scraping
- * Extracts business logic from routes for better separation of concerns
+ * Get website configuration for a URL
  */
+function getWebsiteConfig(url) {
+    try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname;
+
+        for (const [key, config] of Object.entries(websites)) {
+            if (config.domains.some(d => hostname === d || hostname.endsWith('.' + d))) {
+                return config;
+            }
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
 
 /**
  * GET /komik/chapters?url=<comic-url>&mode=<normal|secret>
  * Returns chapter list for a comic
  */
-async function getChapters(req, res, next) {
-    const { url, mode } = req.query;
+export async function getChapters(req, res, next) {
+    const { url, mode = 'normal' } = req.query;
 
-    const domain = validateUrl(url);
-    const config = getWebsiteConfig(domain);
-
-    // Check if NSFW content requires secret mode
-    if (mode !== 'secret' && config.nsfw) {
-        return res.status(403).json({
-            error: 'NSFW content',
-            nsfw: true,
-            useSecretMode: true,
+    if (!url) {
+        return res.status(400).json({
+            success: false,
+            error: 'URL parameter is required'
         });
     }
 
-    // Use browser if the website requires JavaScript rendering
-    const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
-    const $ = await fetchFn(url, config);
+    try {
+        // Validate URL is from supported website
+        const config = getWebsiteConfig(url);
+        if (!config) {
+            return res.status(400).json({
+                success: false,
+                error: 'Unsupported website URL'
+            });
+        }
 
-    const scraper = getScraperForDomain(domain);
-    const data = scraper.getChapters($, domain);
+        // Check NSFW mode requirement
+        if (config.nsfw && mode !== 'secret') {
+            return res.status(403).json({
+                success: false,
+                error: 'This content requires secret mode',
+                nsfw: true,
+                useSecretMode: true
+            });
+        }
 
-    if (data.length <= 0) {
-        return res.status(404).json({ url, data });
+        // Call scraper service
+        const result = await scraperClient.getChapters(url, mode);
+
+        // Handle empty results
+        if (result.data && result.data.length === 0) {
+            return res.status(404).json({
+                success: false,
+                url,
+                data: []
+            });
+        }
+
+        res.json(result);
+
+    } catch (error) {
+        if (error.message === 'Scraper service unavailable') {
+            return res.status(504).json({
+                success: false,
+                error: 'Scraper service unavailable. Please try again later.',
+                retryAfter: 60
+            });
+        }
+        next(error);
     }
-
-    res.json({
-        url,
-        data,
-    });
 }
 
 /**
  * GET /komik/data?url=<chapter-url>&mode=<normal|secret>
  * Returns images for a specific chapter
  */
-async function getChapterData(req, res, next) {
-    const { url, mode } = req.query;
+export async function getChapterData(req, res, next) {
+    const { url, mode = 'normal' } = req.query;
 
-    const domain = validateUrl(url);
-    const config = getWebsiteConfig(domain);
-
-    // Check if NSFW content requires secret mode
-    if (mode !== 'secret' && config.nsfw) {
-        return res.status(403).json({
-            error: 'NSFW content',
-            nsfw: true,
-            useSecretMode: true,
+    if (!url) {
+        return res.status(400).json({
+            success: false,
+            error: 'URL parameter is required'
         });
     }
 
-    // Use browser if the website requires JavaScript rendering
-    const fetchFn = config.useBrowser ? fetchDataWithBrowser : fetchData;
-    const $ = await fetchFn(url, config);
+    try {
+        // Validate URL is from supported website
+        const config = getWebsiteConfig(url);
+        if (!config) {
+            return res.status(400).json({
+                success: false,
+                error: 'Unsupported website URL'
+            });
+        }
 
-    const scraper = getScraperForDomain(domain);
-    const data = scraper.getChapterData($, url);
+        // Check NSFW mode requirement
+        if (config.nsfw && mode !== 'secret') {
+            return res.status(403).json({
+                success: false,
+                error: 'This content requires secret mode',
+                nsfw: true,
+                useSecretMode: true
+            });
+        }
 
-    res.json(data);
+        // Call scraper service
+        const result = await scraperClient.getData(url, mode);
+
+        res.json(result);
+
+    } catch (error) {
+        if (error.message === 'Scraper service unavailable') {
+            return res.status(504).json({
+                success: false,
+                error: 'Scraper service unavailable. Please try again later.',
+                retryAfter: 60
+            });
+        }
+        next(error);
+    }
 }
-
-module.exports = {
-    getChapters,
-    getChapterData,
-};
