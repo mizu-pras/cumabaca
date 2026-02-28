@@ -16,30 +16,34 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Dependencies stage
-FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm install --no-frozen-lockfile
+# Install pnpm globally
+RUN npm install -g pnpm
 
 # Development stage
 FROM base AS development
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN corepack enable pnpm
-ENV NODE_ENV=development
-CMD ["pnpm", "run", "dev"]
 
-# Builder stage
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+RUN pnpm install
+
 COPY . .
-RUN corepack enable pnpm
-ENV NODE_ENV=production
-RUN pnpm run build
+
+ENV NODE_ENV=development
+EXPOSE 3200
+
+CMD ["pnpm", "run", "dev"]
 
 # Production stage
 FROM base AS production
-COPY --from=deps /app/node_modules ./node_modules
+
+COPY package.json ./
+RUN pnpm install --prod
+
 COPY . .
+
 ENV NODE_ENV=production
+EXPOSE 3200
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3200/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
 CMD ["node", "src/bin/www"]
