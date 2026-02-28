@@ -17,8 +17,6 @@ services:
     container_name: cumabaca-scraper-dev
     ports:
       - "3200:3200"
-    volumes:
-      - ./scraper/src:/app/src:Z
     environment:
       - NODE_ENV=development
       - PORT=3200
