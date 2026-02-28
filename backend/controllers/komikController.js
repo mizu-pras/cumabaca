@@ -79,7 +79,10 @@ async function getChapters(req, res, next) {
             });
         }
 
-        res.json(result);
+        // Return data in legacy format (just the array, no wrapper)
+        res.json({
+            data: result.data
+        });
 
     } catch (error) {
         if (error.message === 'Scraper service unavailable') {
@@ -136,7 +139,14 @@ async function getChapterData(req, res, next) {
         // Call scraper service
         const result = await scraperClient.getData(fullUrl, mode);
 
-        res.json(result);
+        // Unwrap scraper response for backward compatibility
+        // Frontend expects: { data: [array of images] }
+        // Scraper returns: { success: true, data: { title, data: [...] }, ... }
+        const images = result.data?.data || result.data;
+
+        res.json({
+            data: images
+        });
 
     } catch (error) {
         if (error.message === 'Scraper service unavailable') {
