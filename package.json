@@ -16,7 +16,13 @@
         "dev:admin": "pnpm --filter cumabaca-admin dev",
         "dev:scraper": "pnpm --filter @cumabaca/scraper dev",
         "dev:all": "concurrently \"pnpm:dev:scraper\" \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
-        "build": "pnpm --filter \"./backend/**\" --filter \"./frontend/**\" --filter \"./admin/**\" --filter \"./scraper/**\" build"
+        "build": "pnpm --filter \"./backend/**\" --filter \"./frontend/**\" --filter \"./admin/**\" --filter \"./scraper/**\" build",
+        "test": "pnpm -r run test",
+        "test:backend": "pnpm --filter cumabaca-backend test",
+        "test:scraper": "pnpm --filter @cumabaca/scraper test",
+        "test:frontend": "pnpm --filter cumabaca-frontend test",
+        "test:admin": "pnpm --filter cumabaca-admin test",
+        "test:e2e": "pnpm --filter @cumabaca/e2e test"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"

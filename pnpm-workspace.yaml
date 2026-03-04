@@ -3,3 +3,4 @@ packages:
   - 'frontend'
   - 'admin'
   - 'scraper'
+  - 'e2e'
