@@ -8,10 +8,11 @@ Express.js REST API that handles HTTP requests, authentication, admin CRUD, resp
 
 ## Architecture
 
-The backend is now a lightweight API that:
+The backend is a lightweight API that:
 - Handles HTTP requests from clients
 - Manages authentication and admin CRUD
-- Caches API responses (24-hour TTL)
+- Caches API responses in **MongoDB** (24-hour TTL)
+- Stores admin data (languages, websites, komiks) in **SQLite** (sql.js)
 - Proxies scraping requests to the scraper service via HTTP
 
 Scraping operations are handled by the separate `scraper/` service.
@@ -50,6 +51,7 @@ Create a `.env` file in the `backend/` directory:
 | `ADMIN_JWT_EXPIRY` | Token expiry time | `24h` |
 | `SCRAPER_URL` | Scraper service URL | `http://localhost:3200` |
 | `SCRAPER_TIMEOUT` | Scraper request timeout (ms) | `30000` |
+| `SQLITE_PATH` | Path to SQLite database file | `./data/admin.db` |
 
 ## API Endpoints
 
@@ -102,6 +104,7 @@ backend/
 ├── bin/www                    # Server entry point
 ├── config/
 │   ├── database.js            # MongoDB connection with indexes
+│   ├── sqlite.js              # SQLite database init and admin tables
 │   └── websites.js            # Website configuration (for validation)
 ├── controllers/
 │   ├── komikController.js     # Comic scraping logic (proxies to scraper)
@@ -110,12 +113,22 @@ backend/
 │   ├── adminController.js     # Admin auth logic
 │   ├── languageController.js  # Languages CRUD
 │   ├── websiteController.js   # Websites CRUD
-│   └── komikController.js     # Komiks CRUD
+│   └── komikManagementController.js  # Komiks CRUD
 ├── middleware/
 │   ├── auth.js                # JWT auth middleware (requireAuth)
 │   └── scraperClient.js       # HTTP client for scraper service
 ├── models/
-│   └── AdminUser.js           # Admin user model with password hashing
+│   ├── AdminUser.js           # Admin user model with password hashing
+│   ├── Komik.js               # Komik model
+│   ├── KomikWebsite.js        # Komik-Website mapping model
+│   ├── Language.js             # Language model
+│   └── Website.js             # Website model
+├── cli/
+│   └── admin-cli.js           # CLI for admin operations
+├── scripts/
+│   ├── createAdmin.js         # Create admin user
+│   ├── setup.js               # Initial setup
+│   └── migrate.js             # Database migration
 ├── routes/
 │   ├── index.js               # Route index
 │   ├── komik.js               # Comic scraping routes

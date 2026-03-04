@@ -71,6 +71,8 @@ admin/
 │   │   └── Komiks/            # Komiks CRUD with website sources
 │   ├── stores/
 │   │   └── authStore.js       # Auth state (Zustand + persist)
+│   ├── context/
+│   │   └── layout-provider.tsx # Layout context provider
 │   └── lib/
 │       ├── api.js             # Axios instance with 401 interceptor
 │       ├── adminApi.js        # API modules (languages, websites, komiks)

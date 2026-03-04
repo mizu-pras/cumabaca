@@ -54,11 +54,12 @@ pnpm run build
 | `PORT` | `3100` |
 | `MONGODB_URI` | `mongodb://localhost:27017/cumabaca` |
 | `CACHE_TTL` | `86400` (24 hours) |
-| `CORS_ORIGIN` | `*` (dev) |
+| `CORS_ORIGIN` | `http://localhost:5173` |
 | `JWT_SECRET` | `change-this-secret-in-production` |
 | `ADMIN_JWT_EXPIRY` | `24h` |
 | `SCRAPER_URL` | `http://localhost:3200` |
 | `SCRAPER_TIMEOUT` | `30000` |
+| `SQLITE_PATH` | `./data/admin.db` |
 
 ### Scraper (`scraper/.env`)
 | Variable | Default |
@@ -96,7 +97,10 @@ cumabaca/
 │   │   ├── health.js              # Health check with scraper status
 │   │   └── admin/                 # Admin CRUD routes (languages, websites, komiks)
 │   ├── controllers/               # Business logic
-│   └── middleware/                # Auth middleware (JWT) and scraper client
+│   ├── middleware/                # Auth middleware (JWT) and scraper client
+│   ├── models/                   # SQLite models (AdminUser, Komik, Language, Website, KomikWebsite)
+│   ├── cli/                      # Admin CLI tool
+│   └── scripts/                  # Setup, migration, and debug scripts
 │
 ├── scraper/                       # Scraping service
 │   ├── CLAUDE.md                  # Scraper-specific guidance
@@ -138,7 +142,9 @@ cumabaca/
 ## Architecture
 
 ### Backend
-- Express.js with MongoDB cache
+- Express.js API server
+- **MongoDB** for API response caching (24-hour TTL)
+- **SQLite** (sql.js) for admin CRUD data (languages, websites, komiks)
 - Proxies scraping requests to scraper service
 - Admin panel with JWT auth
 

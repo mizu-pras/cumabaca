@@ -96,6 +96,8 @@ frontend/
     │   ├── nsfwStore.js       # NSFW mode (localStorage persisted)
     │   └── readerStore.js     # Reader state
     ├── lib/                   # Utilities and API client
+    │   ├── api.js             # Axios instance
+    │   └── data-sources.js    # Data source definitions
     └── styles/                # Global styles
 ```
 
