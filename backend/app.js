@@ -9,6 +9,7 @@ const path = require('path');
 const { connectToDatabase } = require('./config/database');
 
 const komikRouter = require('./routes/komik');
+const apiRouter = require('./routes/api');
 const adminRouter = require('./routes/admin');
 const swaggerUi = require('./swagger-ui');
 const healthRouter = require('./routes/health');
@@ -45,6 +46,7 @@ app.use(express.static('public'));
 
 // API Routes
 app.use('/komik', komikRouter);
+app.use('/api/komik', apiRouter);
 app.use('/admin', adminRouter);
 app.use('/health', healthRouter);
 
