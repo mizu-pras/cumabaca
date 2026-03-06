@@ -12,5 +12,6 @@ router.use('/languages', require('./admin/languages'));
 router.use('/websites', require('./admin/websites'));
 router.use('/komiks', require('./admin/komiks'));
 router.use('/komik-websites', require('./admin/komik-websites'));
+router.use('/scrape', require('./admin/scrape'));
 
 module.exports = router;
