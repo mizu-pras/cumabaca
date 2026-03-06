@@ -1,41 +1,36 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
-# Install dependencies for Puppeteer
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-
-# Set Puppeteer to use installed Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Install dependencies for Playwright Chromium
+RUN apt-get update && \
+    npx playwright install --with-deps chromium && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Development stage
 FROM base AS development
 
+RUN npm install -g pnpm
+
 COPY package.json ./
-RUN npm install
+RUN pnpm install
 
 COPY . .
 
 ENV NODE_ENV=development
 EXPOSE 3200
 
-# Use node directly - file changes are handled via volume mount
-# For hot-reload in development, restart the container
-CMD ["node", "src/bin/www"]
+CMD ["npm", "run", "dev"]
 
 # Production stage
 FROM base AS production
 
 COPY package.json ./
 RUN npm install --production
+
+# Install Playwright Chromium browser
+RUN npx playwright install chromium
 
 COPY . .
 
