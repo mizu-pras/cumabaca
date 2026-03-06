@@ -1,11 +1,11 @@
 const sqlite = require('../config/sqlite');
 
 class KomikWebsite {
-  static async create({ komik_id, website_id, url, total_chapters }) {
+  static async create({ komik_id, website_id, url, cover, synopsis, total_chapters }) {
     const db = await sqlite.getDb();
     db.run(
-      'INSERT INTO komik_websites (komik_id, website_id, url, total_chapters) VALUES (?, ?, ?, ?)',
-      [komik_id, website_id, url, total_chapters || 0]
+      'INSERT INTO komik_websites (komik_id, website_id, url, cover, synopsis, total_chapters) VALUES (?, ?, ?, ?, ?, ?)',
+      [komik_id, website_id, url, cover || null, synopsis || null, total_chapters || 0]
     );
     // Get the last insert ID
     const lastId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
