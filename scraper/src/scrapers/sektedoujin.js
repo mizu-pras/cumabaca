@@ -3,7 +3,7 @@ export class SektedoujinScraper {
         return {
             chapterList: '#chapterlist li',
             chapterName: '.chapternum',
-            chapterTitle: '#chapterheading',
+            chapterTitle: '.entry-title',
             images: '#readerarea img',
         };
     }

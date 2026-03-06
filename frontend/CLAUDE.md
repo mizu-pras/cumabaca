@@ -26,6 +26,15 @@ pnpm run build
 
 # Preview production build
 pnpm run preview
+
+# Run tests
+pnpm run test
+
+# Run tests in watch mode
+pnpm run test:watch
+
+# Run tests with coverage
+pnpm run test:coverage
 ```
 
 ## Environment Variables
@@ -61,13 +70,14 @@ netlify deploy --prod
 ```
 frontend/
 ├── index.html                 # HTML entry point
-├── vite.config.js             # Vite configuration
+├── vite.config.js             # Vite configuration (path alias @→./src, dev proxy)
+├── vitest.config.js           # Vitest test runner configuration
 ├── postcss.config.js          # PostCSS for Tailwind v4
 ├── public/
 │   └── input.css              # Tailwind CSS v4 source
 └── src/
     ├── main.jsx               # React entry point
-    ├── App.jsx                # Root app component
+    ├── App.jsx                # Root app component (routes)
     ├── components/            # Shared components
     │   ├── BackToTop/
     │   ├── ErrorMessage/
@@ -76,6 +86,7 @@ frontend/
     ├── pages/                 # Page components
     │   ├── Reader/            # Main reader page
     │   │   ├── hooks/
+    │   │   │   ├── useChapterList.js
     │   │   │   ├── useInfiniteChapters.js
     │   │   │   ├── useScrollPosition.js
     │   │   │   ├── useActiveChapterDetection.js
@@ -89,7 +100,13 @@ frontend/
     │   │       ├── ChapterSeparator.jsx
     │   │       └── ChapterContent.jsx
     │   ├── Cached/            # Cached comics management
+    │   │   ├── components/
+    │   │   │   └── ComicCard.jsx
+    │   │   └── hooks/
+    │   │       └── useCachedComics.js
     │   ├── Secret/            # NSFW mode settings
+    │   │   └── components/
+    │   │       └── NsfwToggle.jsx
     │   ├── Websites/          # Supported websites
     │   └── About/
     ├── stores/                # Zustand state stores
@@ -98,7 +115,15 @@ frontend/
     ├── lib/                   # Utilities and API client
     │   ├── api.js             # Axios instance
     │   └── data-sources.js    # Data source definitions
-    └── styles/                # Global styles
+    ├── styles/                # Global styles
+    └── __tests__/             # Unit tests (Vitest)
+        ├── setup.js           # Test setup (@testing-library/jest-dom)
+        ├── stores/
+        │   ├── nsfwStore.test.js
+        │   └── readerStore.test.js
+        └── lib/
+            ├── api.test.js
+            └── data-sources.test.js
 ```
 
 ## State Management (Zustand)
@@ -113,14 +138,23 @@ frontend/
 - **Features:** Infinite scroll, chapter tracking
 - **State:** chapters, loading, hasMore, etc.
 
-## Custom Hooks (Reader)
+## Custom Hooks
+
+### Reader Hooks
 
 | Hook | Purpose |
 |------|---------|
+| `useChapterList` | Fetch and normalize chapter list with NSFW filtering |
 | `useInfiniteChapters` | Infinite scroll chapter loading |
 | `useScrollPosition` | Track and restore scroll position |
 | `useActiveChapterDetection` | Detect active chapter from scroll |
 | `useChapterNavigation` | Chapter navigation logic |
+
+### Cached Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useCachedComics` | Cached comics state management |
 
 ## NSFW/Secret Mode
 
@@ -147,6 +181,30 @@ axios.get(`${API_URL}/komik/data?url=${chapterUrl}`)
 // Image proxy (for hotlink-protected images)
 axios.get(`${API_URL}/komik/image?url=${imageUrl}`, { responseType: 'blob' })
 ```
+
+## Testing
+
+- **Runner:** Vitest with jsdom environment
+- **Libraries:** `@testing-library/react`, `@testing-library/jest-dom`
+- **Config:** `vitest.config.js` (path alias `@` → `./src`, setup file `src/__tests__/setup.js`)
+- **Test location:** `src/__tests__/` mirroring source structure
+- **Coverage:** Stores (`nsfwStore`, `readerStore`) and lib (`api`, `data-sources`)
+
+## Routing
+
+| Route | Component | Purpose |
+|-------|-----------|---------|
+| `/` | Reader | Main comic reader |
+| `/about` | About | About page |
+| `/cached` | Cached | Cached comics management |
+| `/secret` | Secret | NSFW mode toggle |
+| `/websites` | Websites | Supported websites list |
+
+## Vite Configuration
+
+- **Path alias:** `@` → `./src`
+- **Dev proxy:** `/komik/*` → `$VITE_API_URL` or `http://localhost:3100`
+- **Server:** Binds to `0.0.0.0:5173` (exposed for Docker)
 
 ## Key Features
 

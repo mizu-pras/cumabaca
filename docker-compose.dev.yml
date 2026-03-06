@@ -1,51 +1,55 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:7
-    container_name: cumabaca-mongo-dev
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+    mongodb:
+        image: mongo:7
+        container_name: cumabaca-mongo-dev
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongodb_data:/data/db
 
-  scraper:
-    build:
-      context: ./scraper
-      dockerfile: Dockerfile
-      target: development
-    container_name: cumabaca-scraper-dev
-    ports:
-      - "3200:3200"
-    environment:
-      - NODE_ENV=development
-      - PORT=3200
-      - MONGODB_URI=mongodb://mongodb:27017/cumabaca
-      - SCRAPER_CACHE_TTL=172800
-    depends_on:
-      - mongodb
+    scraper:
+        build:
+            context: ./scraper
+            dockerfile: Dockerfile
+            target: development
+        container_name: cumabaca-scraper-dev
+        ports:
+            - '3200:3200'
+        volumes:
+            - ./scraper:/app:Z
+            - scraper_node_modules:/app/node_modules
+        environment:
+            - NODE_ENV=development
+            - PORT=3200
+            - MONGODB_URI=mongodb://mongodb:27017/cumabaca
+            - SCRAPER_CACHE_TTL=172800
+        depends_on:
+            - mongodb
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: development
-    container_name: cumabaca-backend-dev
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./backend:/app:Z
-      - backend_node_modules:/app/node_modules
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongodb:27017/cumabaca
-      - CORS_ORIGIN=http://localhost:5173,http://localhost:5174
-      - SCRAPER_URL=http://scraper:3200
-      - SCRAPER_TIMEOUT=30000
-    depends_on:
-      - mongodb
-      - scraper
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+            target: development
+        container_name: cumabaca-backend-dev
+        ports:
+            - '3100:3100'
+        volumes:
+            - ./backend:/app:Z
+            - backend_node_modules:/app/node_modules
+        environment:
+            - NODE_ENV=development
+            - MONGODB_URI=mongodb://mongodb:27017/cumabaca
+            - CORS_ORIGIN=http://localhost:5173,http://localhost:5174
+            - SCRAPER_URL=http://scraper:3200
+            - SCRAPER_TIMEOUT=30000
+        depends_on:
+            - mongodb
+            - scraper
 
 volumes:
-  mongodb_data:
-  backend_node_modules:
+    mongodb_data:
+    backend_node_modules:
+    scraper_node_modules:

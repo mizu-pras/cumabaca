@@ -14,7 +14,7 @@ COPY package.json ./
 RUN pnpm install
 
 # Copy source files
-COPY . . .
+COPY . .
 
 # Expose port for Express (3100)
 EXPOSE 3100

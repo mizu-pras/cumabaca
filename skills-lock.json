@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "d6707ed0467d9664d0f9d2c44724c8fb1814475ec6d3c62a5d54bbbe807e0775"
     },
+    "database-schema-design": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "8634e3e869a794fccecdc3220a0ea642ac16ecdda85c35b3f75bd104bc7e4425"
+    },
     "shadcn-ui": {
       "source": "google-labs-code/stitch-skills",
       "sourceType": "github",
