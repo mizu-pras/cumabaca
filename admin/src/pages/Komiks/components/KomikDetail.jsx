@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import WebsiteSources from './WebsiteSources';
+import ChaptersModal from './ChaptersModal';
 
 function KomikDetail() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ function KomikDetail() {
   const [komik, setKomik] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [viewingChaptersFor, setViewingChaptersFor] = useState(null);
 
   useEffect(() => {
     async function fetchKomik() {
@@ -126,7 +128,18 @@ function KomikDetail() {
       </div>
 
       {/* Website Sources Section */}
-      <WebsiteSources komikId={komik.id} komikTitle={komik.title} />
+      <WebsiteSources
+        komikId={komik.id}
+        komikTitle={komik.title}
+        onViewChapters={(komikWebsite) => setViewingChaptersFor(komikWebsite)}
+      />
+
+      {viewingChaptersFor && (
+        <ChaptersModal
+          komikWebsite={viewingChaptersFor}
+          onClose={() => setViewingChaptersFor(null)}
+        />
+      )}
     </div>
   );
 }
