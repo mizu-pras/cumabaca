@@ -35,4 +35,11 @@ export const komikWebsitesApi = {
   create: (data) => api.post('/admin/komik-websites', data),
   update: (id, data) => api.put(`/admin/komik-websites/${id}`, data),
   delete: (id) => api.delete(`/admin/komik-websites/${id}`),
+  scrapeChapters: (id) => api.post(`/admin/komik-websites/${id}/scrape-chapters`),
+  getChapters: (id) => api.get(`/admin/komik-websites/${id}/chapters`),
+};
+
+// Scrape API
+export const scrapeApi = {
+  syncAll: () => api.post('/admin/scrape/sync'),
 };
