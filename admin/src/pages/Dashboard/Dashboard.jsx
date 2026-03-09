@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { languagesApi, websitesApi, komiksApi } from '../../lib/adminApi';
-import { Globe, Link2, BookOpen, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { languagesApi, websitesApi, komiksApi, scrapeApi } from '../../lib/adminApi';
+import { Globe, Link2, BookOpen, Loader2, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -10,6 +11,22 @@ function Dashboard() {
     komiks: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
+
+  async function handleSyncAll() {
+    if (!confirm('Sync chapters for all sources? This may take a while.')) return;
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      const response = await scrapeApi.syncAll();
+      setSyncResult(response.data.data);
+    } catch (error) {
+      setSyncResult({ error: error.response?.data?.error || error.message });
+    } finally {
+      setIsSyncing(false);
+    }
+  }
 
   useEffect(() => {
     async function fetchStats() {
@@ -89,6 +106,41 @@ function Dashboard() {
           ))}
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Chapter Sync</CardTitle>
+          <CardDescription>
+            Scrape chapters for all active comic sources. This is also called automatically by external cron.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={handleSyncAll} disabled={isSyncing}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync All Sources'}
+          </Button>
+
+          {syncResult && !syncResult.error && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              <p className="font-medium">Sync complete</p>
+              <p>Total: {syncResult.total} | Success: {syncResult.success} | Failed: {syncResult.failed}</p>
+              {syncResult.errors?.length > 0 && (
+                <ul className="mt-2 list-disc list-inside text-red-600">
+                  {syncResult.errors.map((err, i) => (
+                    <li key={i}>{err.url}: {err.error}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {syncResult?.error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              Sync failed: {syncResult.error}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
