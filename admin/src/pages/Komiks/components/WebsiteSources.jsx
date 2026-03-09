@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { komikWebsitesApi } from '../../../lib/adminApi';
 import { websitesApi } from '../../../lib/adminApi';
-import { Plus, ExternalLink, Trash2, Edit2, Globe, Loader2 } from 'lucide-react';
+import { Plus, ExternalLink, Trash2, Edit2, Globe, Loader2, RefreshCw, Eye } from 'lucide-react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import AddWebsiteModal from './AddWebsiteModal';
 import EditWebsiteModal from './EditWebsiteModal';
 
-function WebsiteSources({ komikId, komikTitle }) {
+function WebsiteSources({ komikId, komikTitle, onViewChapters }) {
   const [websites, setWebsites] = useState([]);
   const [availableWebsites, setAvailableWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,6 +20,8 @@ function WebsiteSources({ komikId, komikTitle }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingWebsite, setEditingWebsite] = useState(null);
+  const [scrapingId, setScrapingId] = useState(null);
+  const [scrapeResult, setScrapeResult] = useState(null);
 
   useEffect(() => {
     fetchWebsites();
@@ -76,6 +78,28 @@ function WebsiteSources({ komikId, komikTitle }) {
     setShowEditModal(false);
     setEditingWebsite(null);
     fetchWebsites();
+  }
+
+  async function handleScrape(komikWebsite) {
+    setScrapingId(komikWebsite.id);
+    setScrapeResult(null);
+    try {
+      const response = await komikWebsitesApi.scrapeChapters(komikWebsite.id);
+      setScrapeResult({
+        id: komikWebsite.id,
+        success: true,
+        ...response.data.data,
+      });
+      fetchWebsites(); // Refetch to update total_chapters
+    } catch (error) {
+      setScrapeResult({
+        id: komikWebsite.id,
+        success: false,
+        error: error.response?.data?.error || error.message,
+      });
+    } finally {
+      setScrapingId(null);
+    }
   }
 
   const columns = useMemo(
@@ -140,6 +164,21 @@ function WebsiteSources({ komikId, komikTitle }) {
         header: 'Actions',
         cell: ({ row }) => (
           <div className="flex gap-2">
+            <button
+              onClick={() => handleScrape(row.original)}
+              disabled={scrapingId === row.original.id}
+              className="text-green-600 hover:text-green-800 disabled:text-gray-400"
+              title="Scrape Chapters"
+            >
+              <RefreshCw size={16} className={scrapingId === row.original.id ? 'animate-spin' : ''} />
+            </button>
+            <button
+              onClick={() => onViewChapters && onViewChapters(row.original)}
+              className="text-blue-600 hover:text-blue-800"
+              title="View Chapters"
+            >
+              <Eye size={16} />
+            </button>
             <Button
               variant="ghost"
               size="sm"
@@ -159,7 +198,7 @@ function WebsiteSources({ komikId, komikTitle }) {
         ),
       },
     ],
-    []
+    [scrapingId, onViewChapters]
   );
 
   const table = useReactTable({
@@ -229,6 +268,19 @@ function WebsiteSources({ komikId, komikTitle }) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {scrapeResult && (
+          <div className={`mt-3 p-3 rounded-lg text-sm ${
+            scrapeResult.success
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-600'
+          }`}>
+            {scrapeResult.success
+              ? `Scraped ${scrapeResult.chapters_found} chapters (${scrapeResult.skipped} skipped)`
+              : `Scrape failed: ${scrapeResult.error}`
+            }
           </div>
         )}
 
