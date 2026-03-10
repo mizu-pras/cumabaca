@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { websitesApi } from '../../lib/adminApi';
 import { languagesApi } from '../../lib/adminApi';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -18,6 +18,8 @@ function Websites() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterLang, setFilterLang] = useState('');
+  const [syncingId, setSyncingId] = useState(null);
+  const [syncResult, setSyncResult] = useState(null);
 
   useEffect(() => {
     fetchWebsites();
@@ -59,6 +61,26 @@ function Websites() {
       fetchWebsites();
     } catch (error) {
       alert('Failed to delete website: ' + error.message);
+    }
+  }
+
+  async function handleSyncComics(id) {
+    setSyncingId(id);
+    setSyncResult(null);
+    try {
+      const response = await websitesApi.syncComics(id);
+      const data = response.data.data;
+      setSyncResult({
+        type: 'success',
+        message: `Synced: ${data.created} created, ${data.skipped} skipped (${data.total_scraped} total)`,
+      });
+    } catch (error) {
+      setSyncResult({
+        type: 'error',
+        message: `Sync failed: ${error.response?.data?.error || error.message}`,
+      });
+    } finally {
+      setSyncingId(null);
     }
   }
 
@@ -107,6 +129,23 @@ function Websites() {
         ),
       },
       {
+        id: 'sync',
+        header: 'Sync',
+        cell: ({ row }) => (
+          <button
+            onClick={() => handleSyncComics(row.original.id)}
+            disabled={syncingId !== null}
+            className="text-green-600 hover:text-green-800 disabled:opacity-50"
+            title="Sync Comics"
+          >
+            <RefreshCw
+              size={16}
+              className={`inline ${syncingId === row.original.id ? 'animate-spin' : ''}`}
+            />
+          </button>
+        ),
+      },
+      {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
@@ -127,7 +166,7 @@ function Websites() {
         ),
       },
     ],
-    []
+    [syncingId]
   );
 
   const table = useReactTable({
@@ -175,6 +214,16 @@ function Websites() {
           ))}
         </select>
       </div>
+
+      {syncResult && (
+        <div className={`mb-4 p-3 rounded-lg text-sm ${
+          syncResult.type === 'success'
+            ? 'bg-green-50 text-green-700 border border-green-200'
+            : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          {syncResult.message}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-gray-500">Loading...</div>
