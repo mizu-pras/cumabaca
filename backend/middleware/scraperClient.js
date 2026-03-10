@@ -93,6 +93,28 @@ class ScraperClient {
   }
 
   /**
+   * Get comic listings from scraper
+   */
+  async getComics(baseUrl, stopAtUrl = null) {
+    try {
+      const body = { baseUrl };
+      if (stopAtUrl) body.stopAtUrl = stopAtUrl;
+      const response = await this.client.post('/scrape/comics', body, {
+        timeout: 300000, // 5 minutes — pagination can be slow
+      });
+      return {
+        success: true,
+        ...response.data
+      };
+    } catch (error) {
+      if (error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') {
+        throw new Error('Scraper service unavailable');
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Check if scraper is healthy
    */
   isHealthy() {
