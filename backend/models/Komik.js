@@ -1,11 +1,11 @@
 const sqlite = require('../config/sqlite');
 
 class Komik {
-  static async create({ title, synopsis, language_id, cover_image, status, is_active }) {
+  static async create({ title, synopsis, language_id, cover_image, status, is_active, type }) {
     const db = await sqlite.getDb();
     db.run(
-      'INSERT INTO komiks (title, synopsis, language_id, cover_image, status, is_active) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, synopsis, language_id, cover_image, status || 'ongoing', is_active !== undefined ? (is_active ? 1 : 0) : 1]
+      'INSERT INTO komiks (title, synopsis, language_id, cover_image, status, is_active, type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [title, synopsis, language_id, cover_image, status || 'ongoing', is_active !== undefined ? (is_active ? 1 : 0) : 1, type || 'manga']
     );
     const lastId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
     sqlite.save();
@@ -61,6 +61,18 @@ class Komik {
       LEFT JOIN languages l ON k.language_id = l.id
       WHERE k.id = ?
     `, [id]);
+    const rows = this._parseResult(result);
+    return rows[0] || null;
+  }
+
+  static async findByTitle(title) {
+    const db = await sqlite.getDb();
+    const result = db.exec(`
+      SELECT k.*, l.name as language_name, l.code as language_code
+      FROM komiks k
+      LEFT JOIN languages l ON k.language_id = l.id
+      WHERE k.title = ?
+    `, [title]);
     const rows = this._parseResult(result);
     return rows[0] || null;
   }
