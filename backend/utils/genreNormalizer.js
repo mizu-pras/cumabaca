@@ -28,11 +28,13 @@ const GENRE_MAP = {
 };
 
 function normalizeGenre(rawGenre) {
+  if (!rawGenre || typeof rawGenre !== 'string') return null;
   const trimmed = rawGenre.trim().toLowerCase();
   return GENRE_MAP[trimmed] || rawGenre.trim();
 }
 
 function normalizeType(rawType) {
+  if (!rawType || typeof rawType !== 'string') return 'manga';
   const trimmed = rawType.trim().toLowerCase();
   if (trimmed === 'manhwa') return 'manhwa';
   if (trimmed === 'manhua') return 'manhua';
