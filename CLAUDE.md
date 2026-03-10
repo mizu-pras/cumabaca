@@ -92,13 +92,20 @@ cumabaca/
 ├── backend/                       # Express API
 │   ├── CLAUDE.md                  # Backend-specific guidance
 │   ├── routes/
-│   │   ├── komik.js               # Public comic scraping API (proxies to scraper)
+│   │   ├── komik.js               # Legacy scraping API (proxies to scraper)
+│   │   ├── api.js                 # Public aggregated API (/api/komik)
 │   │   ├── admin.js               # Admin auth
 │   │   ├── health.js              # Health check with scraper status
-│   │   └── admin/                 # Admin CRUD routes (languages, websites, komiks)
-│   ├── controllers/               # Business logic
+│   │   └── admin/                 # Admin CRUD + scrape routes
+│   │       └── scrape.js          # Chapter sync endpoint (for external cron)
+│   ├── controllers/
+│   │   ├── chapterScrapeController.js  # Chapter scraping orchestration
+│   │   └── publicKomikController.js    # Public API with best-source logic
 │   ├── middleware/                # Auth middleware (JWT) and scraper client
-│   ├── models/                   # SQLite models (AdminUser, Komik, Language, Website, KomikWebsite)
+│   ├── models/                   # SQLite models (AdminUser, Komik, Language, Website, KomikWebsite, Chapter, Page)
+│   ├── utils/
+│   │   └── chapterParser.js       # Chapter number extraction from strings
+│   ├── __tests__/                 # Jest unit + integration tests
 │   ├── cli/                      # Admin CLI tool
 │   └── scripts/                  # Setup, migration, and debug scripts
 │
@@ -129,7 +136,12 @@ cumabaca/
 
 ## API Endpoints
 
-### Public API
+### Public Aggregated API (`/api/komik`)
+- `GET /api/komik` - Paginated comic list with best-source logic (`?page=1&limit=20&language=1&search=title&status=ongoing`)
+- `GET /api/komik/:id/chapters` - Chapter list from best source for a komik
+- `GET /api/komik/:komikId/chapters/:chapterId/pages` - Pages for a chapter (lazy-loaded on first access)
+
+### Legacy Scraping API (`/komik`)
 - `GET /komik/chapters?url=<comic-url>` - Get chapter list
 - `GET /komik/data?url=<chapter-url>` - Get chapter images
 - `GET /komik/image?url=<image-url>` - Image proxy (CORS/hotlink bypass)
@@ -137,6 +149,8 @@ cumabaca/
 ### Admin API (`/admin/*`)
 - Auth: `POST /admin/auth/login`, `POST /admin/auth/logout`, `GET /admin/auth/me`
 - CRUD: Languages, Websites, Komiks, Komik-Websites
+- Scraping: `POST /admin/komik-websites/:id/scrape-chapters`, `GET /admin/komik-websites/:id/chapters`
+- Sync: `POST /admin/scrape/sync` (external cron endpoint for all sources)
 - All admin routes require JWT via httpOnly cookie
 
 ## Architecture
@@ -144,8 +158,11 @@ cumabaca/
 ### Backend
 - Express.js API server
 - **MongoDB** for API response caching (24-hour TTL)
-- **SQLite** (sql.js) for admin CRUD data (languages, websites, komiks)
-- Proxies scraping requests to scraper service
+- **SQLite** (sql.js) for admin CRUD data + chapter/page persistence
+  - Models: AdminUser, Komik, Language, Website, KomikWebsite, Chapter, Page
+- Public aggregated API with best-source selection (highest chapter count per komik)
+- Lazy page loading: pages scraped on first access, then served from SQLite
+- Backend orchestrates all scraping; scraper service stays stateless
 - Admin panel with JWT auth
 
 ### Scraper
@@ -169,7 +186,22 @@ cumabaca/
 - **NSFW filtering** - Requires secret mode opt-in
 - **Image proxy** - Some sources require `/komik/image` for hotlink bypass
 - **MongoDB required** - Backend needs MongoDB running
-- **Manual testing only** - No automated test suite
+- **Testing** - Jest + supertest for unit and integration tests (see Testing section)
+
+## Testing
+
+```bash
+# Run all backend tests
+cd backend && pnpm test
+
+# Run specific test file
+cd backend && pnpm test -- __tests__/unit/models/Chapter.test.js
+
+# Run with coverage
+cd backend && pnpm test -- --coverage
+```
+
+Test structure: `backend/__tests__/{unit,integration}/` with Jest + supertest.
 
 ## Workflow Orchestration
 

@@ -12,17 +12,21 @@ The backend is a lightweight API that:
 - Handles HTTP requests from clients
 - Manages authentication and admin CRUD
 - Caches API responses in **MongoDB** (24-hour TTL)
-- Stores admin data (languages, websites, komiks) in **SQLite** (sql.js)
+- Stores admin data + chapter/page persistence in **SQLite** (sql.js)
 - Proxies scraping requests to the scraper service via HTTP
+- Orchestrates chapter scraping (backend calls scraper, stores results)
+- Serves public aggregated API with best-source selection and lazy page loading
 
-Scraping operations are handled by the separate `scraper/` service.
+Scraping operations are handled by the separate `scraper/` service. Backend orchestrates when to scrape; scraper stays stateless.
 
 ## Tech Stack
 
 - **Express.js** - Web framework
 - **MongoDB** - Persistent cache storage
+- **SQLite** (sql.js) - Admin data + chapter/page persistence
 - **Axios** - HTTP client for scraper communication
 - **JWT** - Authentication for admin routes
+- **Jest + supertest** - Testing
 
 ## Development Commands
 
@@ -34,6 +38,12 @@ pnpm run dev
 
 # Production mode
 pnpm run start
+
+# Run tests
+pnpm test
+
+# Run specific test file
+pnpm test -- __tests__/unit/models/Chapter.test.js
 ```
 
 ## Environment Variables
@@ -72,6 +82,15 @@ Create a `.env` file in the `backend/` directory:
 - **`DELETE /komik/cache?key=<key>`** - Delete specific cache entry
 - **`DELETE /komik/cache`** - Clear all cache entries
 
+### Public Aggregated API
+
+- **`GET /api/komik`** - Paginated comic list with best-source logic
+  - Query params: `?page=1&limit=20&language=1&search=title&status=ongoing`
+  - Best source = KomikWebsite with highest chapter number
+  - Cover/synopsis fallback: komik-level → source-level
+- **`GET /api/komik/:id/chapters`** - Chapter list from best source
+- **`GET /api/komik/:komikId/chapters/:chapterId/pages`** - Pages (lazy-loaded on first access, then served from SQLite)
+
 ### Admin API
 
 All admin routes are prefixed with `/admin`.
@@ -95,6 +114,8 @@ All admin routes are prefixed with `/admin`.
 | **Websites** | `GET /admin/websites`, `GET /admin/websites/:id`, `POST /admin/websites`, `PUT /admin/websites/:id`, `DELETE /admin/websites/:id` |
 | **Komiks** | `GET /admin/komiks`, `GET /admin/komiks/:id`, `POST /admin/komiks`, `PUT /admin/komiks/:id`, `DELETE /admin/komiks/:id` |
 | **Komik-Websites** | `GET /admin/komik-websites`, `GET /admin/komik-websites/:id`, `POST /admin/komik-websites`, `PUT /admin/komik-websites/:id`, `DELETE /admin/komik-websites/:id` |
+| **Chapter Scraping** | `POST /admin/komik-websites/:id/scrape-chapters`, `GET /admin/komik-websites/:id/chapters` |
+| **Sync** | `POST /admin/scrape/sync` (external cron endpoint — scrapes chapters for ALL active sources) |
 
 ## Project Structure
 
@@ -113,16 +134,20 @@ backend/
 │   ├── adminController.js     # Admin auth logic
 │   ├── languageController.js  # Languages CRUD
 │   ├── websiteController.js   # Websites CRUD
-│   └── komikManagementController.js  # Komiks CRUD
+│   ├── komikManagementController.js  # Komiks CRUD
+│   ├── chapterScrapeController.js    # Chapter scraping orchestration
+│   └── publicKomikController.js      # Public aggregated API
 ├── middleware/
 │   ├── auth.js                # JWT auth middleware (requireAuth)
 │   └── scraperClient.js       # HTTP client for scraper service
 ├── models/
 │   ├── AdminUser.js           # Admin user model with password hashing
 │   ├── Komik.js               # Komik model
-│   ├── KomikWebsite.js        # Komik-Website mapping model
+│   ├── KomikWebsite.js        # Komik-Website mapping model (+ cover, synopsis)
 │   ├── Language.js             # Language model
-│   └── Website.js             # Website model
+│   ├── Website.js             # Website model
+│   ├── Chapter.js             # Chapter model (CRUD + batch upsert)
+│   └── Page.js                # Page model (batch insert + lazy-load check)
 ├── cli/
 │   └── admin-cli.js           # CLI for admin operations
 ├── scripts/
@@ -131,18 +156,24 @@ backend/
 │   └── migrate.js             # Database migration
 ├── routes/
 │   ├── index.js               # Route index
-│   ├── komik.js               # Comic scraping routes
+│   ├── komik.js               # Legacy scraping routes
+│   ├── api.js                 # Public aggregated API (/api/komik)
 │   ├── health.js              # Health check with scraper status
 │   ├── admin.js               # Admin auth routes
-│   └── admin/                 # Admin CRUD routes (protected)
+│   └── admin/                 # Admin CRUD + scrape routes (protected)
 │       ├── languages.js
 │       ├── websites.js
 │       ├── komiks.js
-│       └── komik-websites.js
-└── utils/
-    ├── cache.js               # Cache middleware
-    ├── mongodb-cache.js       # MongoDB cache operations
-    └── asyncHandler.js        # Async error wrapper
+│       ├── komik-websites.js  # + scrape-chapters, chapters endpoints
+│       └── scrape.js          # Sync endpoint for external cron
+├── utils/
+│   ├── cache.js               # Cache middleware
+│   ├── mongodb-cache.js       # MongoDB cache operations
+│   ├── asyncHandler.js        # Async error wrapper
+│   └── chapterParser.js       # Chapter number extraction from strings
+└── __tests__/                 # Jest tests
+    ├── unit/                  # Unit tests (models, controllers, routes, utils)
+    └── integration/           # Integration tests (public API)
 ```
 
 ## Scraper Client
