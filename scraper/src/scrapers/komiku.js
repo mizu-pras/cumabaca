@@ -49,4 +49,34 @@ export class KomikuScraper {
             data,
         };
     }
+
+    getComicList($) {
+        const comics = [];
+
+        $('div.bge').each((_, el) => {
+            const element = $(el);
+
+            // Title
+            const title = element.find('div.kan a h3').first().text().trim();
+            if (!title) return;
+
+            // URL (from the kan link, relative path)
+            const url = element.find('div.kan > a').first().attr('href');
+            if (!url) return;
+
+            // Cover image
+            const cover = element.find('div.bgei img').first().attr('src') || '';
+
+            // Type and Genre from tpe1_inf: "<b>Manga</b> Fantasi"
+            const typeGenreEl = element.find('div.tpe1_inf');
+            const type = typeGenreEl.find('b').text().trim() || 'Manga';
+            // Genre is the text after the <b> tag
+            const fullText = typeGenreEl.text().trim();
+            const genre = fullText.replace(type, '').trim() || '';
+
+            comics.push({ title, url, cover, type, genre });
+        });
+
+        return comics;
+    }
 }
