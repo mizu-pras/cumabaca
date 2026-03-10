@@ -106,6 +106,31 @@ function ensureSchema(db) {
     );
   `);
 
+  // Genre table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS genres (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Komik-Genre junction table (many-to-many)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS komik_genres (
+      komik_id INTEGER NOT NULL REFERENCES komiks(id) ON DELETE CASCADE,
+      genre_id INTEGER NOT NULL REFERENCES genres(id) ON DELETE CASCADE,
+      PRIMARY KEY (komik_id, genre_id)
+    );
+  `);
+
+  // Add type column to komiks (migration-safe)
+  try {
+    db.run(`ALTER TABLE komiks ADD COLUMN type TEXT DEFAULT 'manga'`);
+  } catch (e) {
+    // Column already exists — ignore
+  }
+
   // Create indexes (idempotent)
   db.run('CREATE INDEX IF NOT EXISTS idx_websites_language ON websites(language_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_komiks_language ON komiks(language_id);');
@@ -114,6 +139,8 @@ function ensureSchema(db) {
   db.run('CREATE INDEX IF NOT EXISTS idx_chapters_komik_website ON chapters(komik_website_id);');
   db.run('CREATE INDEX IF NOT EXISTS idx_chapters_number ON chapters(chapter_number);');
   db.run('CREATE INDEX IF NOT EXISTS idx_pages_chapter ON pages(chapter_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_komik_genres_komik ON komik_genres(komik_id);');
+  db.run('CREATE INDEX IF NOT EXISTS idx_komik_genres_genre ON komik_genres(genre_id);');
 }
 
 async function initDatabase() {
