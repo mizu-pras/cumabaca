@@ -197,13 +197,13 @@ export async function clearCache(req, res) {
 }
 
 /**
- * Scrape comic listings from a website (paginated)
- * Body: { baseUrl, stopAtUrl? }
+ * Scrape comic listings from a website (one page at a time)
+ * Body: { baseUrl, page? }
  * - baseUrl: e.g., "https://komiku.org"
- * - stopAtUrl: stop pagination when this comic URL is found (incremental sync)
+ * - page: page number (default 1)
  */
 export async function scrapeComics(req, res, next) {
-  const { baseUrl, stopAtUrl } = req.body;
+  const { baseUrl, page = 1 } = req.body;
 
   if (!baseUrl) {
     return res.status(400).json({ success: false, error: 'baseUrl is required' });
@@ -222,42 +222,32 @@ export async function scrapeComics(req, res, next) {
       return res.status(400).json({ success: false, error: 'This scraper does not support comic listing' });
     }
 
-    const allComics = [];
-    let page = 1;
-    let shouldStop = false;
-
     // Use API URL if available (for komiku)
     const comicListUrl = config.apiUrl || baseUrl;
+    const pageUrl = `${comicListUrl.replace(/\/$/, '')}/manga/page/${page}/`;
 
-    while (!shouldStop) {
-      const pageUrl = `${comicListUrl.replace(/\/$/, '')}/manga/page/${page}/`;
+    const $ = config.useBrowser
+      ? await fetchDataWithBrowser(pageUrl, config)
+      : await fetchData(pageUrl);
 
-      const $ = config.useBrowser
-        ? await fetchDataWithBrowser(pageUrl, config)
-        : await fetchData(pageUrl);
-
-      if (!$) break;
-
-      const comics = scraper.getComicList($);
-      if (comics.length === 0) break;
-
-      for (const comic of comics) {
-        if (stopAtUrl && comic.url === stopAtUrl) {
-          shouldStop = true;
-          break;
-        }
-        allComics.push(comic);
-      }
-
-      page++;
+    if (!$) {
+      return res.json({
+        success: true,
+        data: [],
+        page,
+        hasNextPage: false,
+        scrapeTime: Date.now() - startTime,
+      });
     }
 
+    const comics = scraper.getComicList($);
     const scrapeTime = Date.now() - startTime;
 
     res.json({
       success: true,
-      data: allComics,
-      totalPages: page - 1,
+      data: comics,
+      page,
+      hasNextPage: comics.length > 0, // If we got results, assume there might be more
       scrapeTime,
     });
   } catch (error) {

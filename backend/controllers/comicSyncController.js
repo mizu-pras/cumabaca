@@ -10,43 +10,37 @@ const comicSyncController = {
   async syncComics(req, res) {
     try {
       const { id } = req.params;
+      const { page = 1 } = req.query;
       const website = await Website.findById(id);
 
       if (!website) {
         return res.status(404).json({ error: 'Website not found' });
       }
 
-      // Find most recent known comic URL for incremental sync
+      // Get existing URLs to avoid duplicates
       const existingKomikWebsites = await KomikWebsite.findAll({ website_id: id });
       const knownUrls = new Set(existingKomikWebsites.map(kw => kw.url));
-      const stopAtUrl = existingKomikWebsites.length > 0
-        ? existingKomikWebsites[0]?.url  // Most recent (ordered by id DESC)
-        : null;
 
-      // Call scraper
-      const result = await scraperClient.getComics(website.url, stopAtUrl);
+      // Fetch one page of comics from scraper
+      const result = await scraperClient.getComics(website.url, parseInt(page));
       const comics = result.data || [];
 
       let created = 0;
       let skipped = 0;
 
       for (const comic of comics) {
-        // Build full URL
         const comicUrl = comic.url.startsWith('http')
           ? comic.url
           : website.url.replace(/\/$/, '') + comic.url;
 
-        // Skip if this URL already exists for this website
         if (knownUrls.has(comicUrl)) {
           skipped++;
           continue;
         }
 
-        // Normalize type and genre
         const type = normalizeType(comic.type);
         const genreName = comic.genre ? normalizeGenre(comic.genre) : null;
 
-        // Find or create Komik by title
         let komik = await Komik.findByTitle(comic.title);
         if (!komik) {
           const createResult = await Komik.create({
@@ -58,13 +52,11 @@ const comicSyncController = {
           komik = { id: createResult.id };
         }
 
-        // Handle genre
         if (genreName) {
           const genre = await Genre.findOrCreate(genreName);
           await KomikGenre.addGenre(komik.id, genre.id);
         }
 
-        // Create KomikWebsite link
         try {
           await KomikWebsite.create({
             komik_id: komik.id,
@@ -75,7 +67,6 @@ const comicSyncController = {
           knownUrls.add(comicUrl);
           created++;
         } catch (e) {
-          // UNIQUE constraint — already linked
           skipped++;
         }
       }
@@ -83,6 +74,8 @@ const comicSyncController = {
       res.json({
         data: {
           website_id: id,
+          page: parseInt(page),
+          hasNextPage: result.hasNextPage,
           total_scraped: comics.length,
           created,
           skipped,

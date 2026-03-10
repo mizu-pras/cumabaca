@@ -93,14 +93,12 @@ class ScraperClient {
   }
 
   /**
-   * Get comic listings from scraper
+   * Get comic listings from scraper (one page at a time)
    */
-  async getComics(baseUrl, stopAtUrl = null) {
+  async getComics(baseUrl, page = 1) {
     try {
-      const body = { baseUrl };
-      if (stopAtUrl) body.stopAtUrl = stopAtUrl;
-      const response = await this.client.post('/scrape/comics', body, {
-        timeout: 300000, // 5 minutes — pagination can be slow
+      const response = await this.client.post('/scrape/comics', { baseUrl, page }, {
+        timeout: 30000,
       });
       return {
         success: true,

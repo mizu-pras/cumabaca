@@ -64,20 +64,33 @@ function Websites() {
     }
   }
 
-  async function handleSyncComics(id) {
+  async function handleSyncComics(id, page = 1) {
     setSyncingId(id);
     setSyncResult(null);
     try {
-      const response = await websitesApi.syncComics(id);
+      const response = await websitesApi.syncComics(id, page);
       const data = response.data.data;
-      setSyncResult({
-        type: 'success',
-        message: `Synced: ${data.created} created, ${data.skipped} skipped (${data.total_scraped} total)`,
-      });
+
+      if (data.hasNextPage) {
+        setSyncResult({
+          type: 'success',
+          message: `Page ${page}: ${data.created} created, ${data.skipped} skipped`,
+          hasNextPage: true,
+          websiteId: id,
+          nextPage: page + 1,
+        });
+      } else {
+        setSyncResult({
+          type: 'success',
+          message: `Done! Total: ${data.created} created, ${data.skipped} skipped`,
+          hasNextPage: false,
+        });
+      }
     } catch (error) {
       setSyncResult({
         type: 'error',
         message: `Sync failed: ${error.response?.data?.error || error.message}`,
+        hasNextPage: false,
       });
     } finally {
       setSyncingId(null);
@@ -221,7 +234,18 @@ function Websites() {
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
-          {syncResult.message}
+          <div className="flex items-center justify-between">
+            <span>{syncResult.message}</span>
+            {syncResult.hasNextPage && (
+              <button
+                onClick={() => handleSyncComics(syncResult.websiteId, syncResult.nextPage)}
+                disabled={syncingId !== null}
+                className="ml-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                Sync Next Page
+              </button>
+            )}
+          </div>
         </div>
       )}
 
