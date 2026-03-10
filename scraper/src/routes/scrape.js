@@ -3,7 +3,8 @@ import {
   scrapeChapters,
   scrapeData,
   getCacheStats,
-  clearCache
+  clearCache,
+  scrapeComics
 } from '../controllers/scrapeController.js';
 
 const router = express.Router();
@@ -31,5 +32,11 @@ router.get('/cache/stats', getCacheStats);
  * Clear all scraper cache
  */
 router.delete('/cache', clearCache);
+
+/**
+ * POST /scrape/comics
+ * Scrape comic listings from a website (paginated)
+ */
+router.post('/comics', scrapeComics);
 
 export default router;

@@ -195,3 +195,70 @@ export async function clearCache(req, res) {
     });
   }
 }
+
+/**
+ * Scrape comic listings from a website (paginated)
+ * Body: { baseUrl, stopAtUrl? }
+ * - baseUrl: e.g., "https://komiku.org"
+ * - stopAtUrl: stop pagination when this comic URL is found (incremental sync)
+ */
+export async function scrapeComics(req, res, next) {
+  const { baseUrl, stopAtUrl } = req.body;
+
+  if (!baseUrl) {
+    return res.status(400).json({ success: false, error: 'baseUrl is required' });
+  }
+
+  const startTime = Date.now();
+
+  try {
+    const config = getWebsiteConfig(baseUrl);
+    if (!config) {
+      return res.status(400).json({ success: false, error: 'Unsupported website' });
+    }
+
+    const scraper = getScraperForDomain(baseUrl);
+    if (!scraper.getComicList) {
+      return res.status(400).json({ success: false, error: 'This scraper does not support comic listing' });
+    }
+
+    const allComics = [];
+    let page = 1;
+    let shouldStop = false;
+
+    while (!shouldStop) {
+      const pageUrl = `${baseUrl.replace(/\/$/, '')}/manga/page/${page}/`;
+
+      const $ = config.useBrowser
+        ? await fetchDataWithBrowser(pageUrl, config)
+        : await fetchData(pageUrl);
+
+      if (!$) break;
+
+      const comics = scraper.getComicList($);
+      if (comics.length === 0) break;
+
+      for (const comic of comics) {
+        if (stopAtUrl && comic.url === stopAtUrl) {
+          shouldStop = true;
+          break;
+        }
+        allComics.push(comic);
+      }
+
+      page++;
+    }
+
+    const scrapeTime = Date.now() - startTime;
+
+    res.json({
+      success: true,
+      data: allComics,
+      totalPages: page - 1,
+      scrapeTime,
+    });
+  } catch (error) {
+    console.error('Scrape comics error:', error);
+    next(error);
+  }
+}
