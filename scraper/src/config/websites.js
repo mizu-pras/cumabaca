@@ -1,8 +1,9 @@
 export const websites = {
     komiku: {
         name: 'Komiku',
-        domains: ['komiku.org'],
+        domains: ['komiku.org', 'api.komiku.org'],
         baseUrl: 'https://komiku.org',
+        apiUrl: 'https://api.komiku.org',
         lang: 'id',
     },
     komikcast: {

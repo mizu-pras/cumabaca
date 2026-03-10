@@ -22,7 +22,12 @@ export const loadCheerio = (html) => {
 
 // Fetches data from URL and loads it into Cheerio
 export const fetchData = async (url, _config) => {
-    const response = await axios(url);
+    const response = await axios(url, {
+        maxRedirects: 5,
+        headers: {
+            'User-Agent': getRandomUserAgent(),
+        },
+    });
     if (!response.data) {
         throw new Error('Something went wrong!');
     }

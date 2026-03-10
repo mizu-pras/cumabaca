@@ -226,8 +226,11 @@ export async function scrapeComics(req, res, next) {
     let page = 1;
     let shouldStop = false;
 
+    // Use API URL if available (for komiku)
+    const comicListUrl = config.apiUrl || baseUrl;
+
     while (!shouldStop) {
-      const pageUrl = `${baseUrl.replace(/\/$/, '')}/manga/page/${page}/`;
+      const pageUrl = `${comicListUrl.replace(/\/$/, '')}/manga/page/${page}/`;
 
       const $ = config.useBrowser
         ? await fetchDataWithBrowser(pageUrl, config)
