@@ -16,6 +16,7 @@ export const websitesApi = {
   create: (data) => api.post('/admin/websites', data),
   update: (id, data) => api.put(`/admin/websites/${id}`, data),
   delete: (id) => api.delete(`/admin/websites/${id}`),
+  syncComics: (id) => api.post(`/admin/websites/${id}/sync-comics`),
 };
 
 // Komiks API
