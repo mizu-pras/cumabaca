@@ -4,3 +4,7 @@ packages:
   - 'admin'
   - 'scraper'
   - 'e2e'
+allowBuilds:
+  '@scarf/scarf': false
+  bcrypt: true
+  esbuild: true

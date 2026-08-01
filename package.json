@@ -10,12 +10,12 @@
         "scraper"
     ],
     "scripts": {
-        "dev": "concurrently \"pnpm:dev:scraper\" \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
+        "dev": "concurrently \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
         "dev:backend": "podman-compose -f docker-compose.dev.yml up",
         "dev:frontend": "pnpm --filter cumabaca-frontend dev",
         "dev:admin": "pnpm --filter cumabaca-admin dev",
         "dev:scraper": "pnpm --filter @cumabaca/scraper dev",
-        "dev:all": "concurrently \"pnpm:dev:scraper\" \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
+        "dev:all": "concurrently \"pnpm:dev:backend\" \"pnpm:dev:frontend\" \"pnpm:dev:admin\"",
         "build": "pnpm --filter \"./backend/**\" --filter \"./frontend/**\" --filter \"./admin/**\" --filter \"./scraper/**\" build",
         "test": "pnpm -r run test",
         "test:backend": "pnpm --filter cumabaca-backend test",

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     mongodb:
-        image: mongo:7
+        image: docker.io/library/mongo:7
         container_name: cumabaca-mongo-dev
         ports:
             - '27017:27017'

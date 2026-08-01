@@ -1,11 +1,5 @@
 FROM node:20-slim AS base
 
-# Install dependencies for Playwright Chromium
-RUN apt-get update && \
-    npx playwright install --with-deps chromium && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
 # Development stage
@@ -14,7 +8,10 @@ FROM base AS development
 RUN npm install -g pnpm
 
 COPY package.json ./
-RUN pnpm install
+RUN pnpm install && \
+    pnpm exec playwright install --with-deps chromium && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
@@ -27,10 +24,10 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 
 COPY package.json ./
-RUN npm install --production
-
-# Install Playwright Chromium browser
-RUN npx playwright install chromium
+RUN npm install --production && \
+    ./node_modules/.bin/playwright install --with-deps chromium && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
